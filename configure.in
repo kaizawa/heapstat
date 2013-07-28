@@ -23,6 +23,7 @@ fi
 IS_GNU_LD=`ld --version 2>&1 | grep  GNU`
 if test "$GCC" = yes; then
 	PTHREAD_CFLAGS="-pthreads"
+        CFLAGS=""
 else
 	PTHREAD_CFLAGS="-mt"
 fi
