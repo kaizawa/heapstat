@@ -1,16 +1,16 @@
 CONFIGURE_FILES = Makefile config.status config.cache config.h config.log autom4te.cache
 CC = @CC@
 DEFS = @DEFS@
-CFLAGS = -g -I.  $(DEFS) @CFLAGS@ 
+CFLAGS = -g -I. -I../inc $(DEFS) @CFLAGS@ 
 LD_FLAGS = @LD_OPT@
 LN = /usr/bin/ln
-PRODUCTS = leak
+PRODUCTS = leak plibtest astest small
 INSTALL = @INSTALL@
 TEMPFILES = *~ .*~ .\#* \#*\#
 
 all: $(PRODUCTS)
 
-leak: 
+leak: leak.c
 	${CC} $(CFLAGS) -o $@ leak.c
 
 clean:
@@ -19,5 +19,14 @@ clean:
 distclean: 
 	-rm -fr $(CONFIGURE_FILES) $(TEMPFILES) 
 
-test: 
+test:
 	echo "not implemented"
+
+plibtest: plibtest.c
+	${CC} $(CFLAGS) -lproc -o $@ plibtest.c
+
+astest: astest.c
+	${CC} $(CFLAGS) -o $@ astest.c
+
+small: small.c
+	${CC} $(CFLAGS) -o $@ small.c
