@@ -1,0 +1,801 @@
+This is memo of investigation of how pmap works on OpenSolaris.
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/cmd/ptools/pmap/pmap.c#708
+    695 	/*
+    696 	 * If the mapping is not anon or not part of the heap, make a name
+    697 	 * for it.  We don't want to report the heap as a.out's data.
+    698 	 */
+    699 	if (!(pmp->pr_mflags & MA_ANON) ||
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    700 	    segment_end <= Psp->pr_brkbase ||
+    701 	    pmp->pr_vaddr >= Psp->pr_brkbase + Psp->pr_brksize) {
+    702 		lname = make_name(Pr, lflag, pmp->pr_vaddr, pmp->pr_mapname,
+    703 		    mname, sizeof (mname));
+    704 	}
+    705
+    706 	if (lname == NULL &&
+                    ^^^^^^^
+    707 	    ((pmp->pr_mflags & MA_ANON) || Pstate(Pr) == PS_DEAD)) {
+    708 		lname = anon_name(mname, Psp, stacks, nstacks, pmp->pr_vaddr,
+    709 		    pmp->pr_size, pmp->pr_mflags, pmp->pr_shmid, NULL);
+    710 	}
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/cmd/ptools/pmap/pmap_common.c
+    113 char *
+    114 anon_name(char *name, const pstatus_t *Psp, lwpstack_t *stacks, uint_t nstacks,
+        ^^^^^^^^                    ^^^^^^^^^^^^^       
+    115     uintptr_t vaddr, size_t size, int mflags, int shmid, int *mtypesp)
+                                          ^^^^^^^^^
+    116 {
+     :
+    137 	} else if ((mflags & MA_ANON) &&
+                            ^^^^^^^^^^^^^^^^
+    138 	    vaddr + size > Psp->pr_brkbase &&
+                                   ^^^^^^^^^^^^^^^ brkbase~ 
+    139 	    vaddr < Psp->pr_brkbase + Psp->pr_brksize) {
+    140 		(void) strcpy(name, "  [ heap ]");
+                                               ^^^^^^^^
+    141 		mtypes |= (1 << AT_HEAP);
+    142 	} else {
+     :
+    150 static	struct ps_prochandle *Pr;
+                                     ^^^^
+
+
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/cmd/ptools/pmap/pmap.c#708
+    681 static int
+    682 look_map(void *data, const prmap_t *pmp, const char *object_name)
+     :
+    685 	const pstatus_t *Psp = Pstatus(Pr);
+     :                          ^^^^   ^^^^^^^^^^^
+    683 {
+     :
+    706         if (lname == NULL &&
+    707 	    ((pmp->pr_mflags & MA_ANON) || Pstate(Pr) == PS_DEAD)) {
+    708 		lname = anon_name(mname, Psp, stacks, nstacks, pmp->pr_vaddr,
+                                ^^^^^^^^^^       ^^^^
+    709 		    pmp->pr_size, pmp->pr_mflags, pmp->pr_shmid, NULL);
+                                          ^^^^^^^^^^^^^^
+    710 	}
+
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/cmd/ptools/pmap/pmap.c#Pr
+    191 main(int argc, char **argv)
+    192 {
+     :
+    344 		if ((Pr = proc_arg_grab(arg = *argv++, PR_ARG_ANY,
+                                  ^^^^^^^^^^^^^
+    345 		    prg_gflags, &gcode)) == NULL) {
+    346 			(void) fprintf(stderr, "%s: cannot examine %s: %s\n",
+    347 			    command, arg, Pgrab_error(gcode));
+    348 			rc++;
+    349 			continue;
+    350 		}
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/lib/libproc/common/proc_arg.c#proc_arg_grab
+    250 proc_arg_grab(const char *arg, int oflag, int gflag, int *perr)
+    251 {
+    252 	return (proc_grab_common(arg, NULL, oflag, gflag, perr, NULL, NULL));
+                        ^^^^^^^^^^^^^^^^
+    253 }
+     :
+    130 proc_grab_common(const char *arg, const char *path, int oflag, int gflag,
+    131     int *perr, const char **lwps, psinfo_t *psp)
+    132 {
+     :
+    171 		/*
+    172 		 * Next, try grabbing it as a corefile.
+    173 		 */
+    174 		if ((oflag & PR_ARG_CORES) &&
+    175 		    (fd = open_core(arg, perr)) != -1) {
+                                  ^^^^^^^^^^^
+    176 			*lwps = slash + 1;
+    177 			*slash = '/';
+    178 			if (proc_lwp_range_valid(*lwps) != 0) {
+    179 				*perr = G_BADLWPS;
+    180 				return (NULL);
+    181 			}
+    182 			core = strdupa(arg);
+    183 			if ((Pr = Pfgrab_core(fd, path == NULL ?
+                                          ^^^^^^^^^^^
+    184 			    dirname(core) : path, perr)) != NULL) {
+    185 				if (psp) {
+    186 					(void) memcpy(psp, Ppsinfo(Pr),
+    187 					    sizeof (psinfo_t));
+    188 					Prelease(Pr, 0);
+    189 					return (psp);
+    190 				} else {
+    191 					return (Pr);
+    192 				}
+    193 			}
+    194 		}
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/lib/libproc/common/proc_arg.c#79
+     79 open_core(const char *arg, int *perr)
+      :
+     90 	/*
+     91 	 * Attempt to open the core file, and return the fd if we can confirm
+     92 	 * this is an ELF file of type ET_CORE.
+     93 	 */
+     94 	if ((fd = open64(arg, O_RDONLY)) >= 0) {
+     95 		if (read(fd, &ehdr, sizeof (ehdr)) != sizeof (ehdr)) {
+     96 			(void) close(fd);
+     97 			fd = -1;
+     98 		} else if ((is_noelf = memcmp(&ehdr.e_ident[EI_MAG0], ELFMAG,
+     99 		    SELFMAG)) != 0 || ehdr.e_type != ET_CORE) { <-- CORE のチェク。使えるね。
+    100 			(void) close(fd);
+    101 			fd = -1;
+    102 			if (is_noelf == 0 &&
+    103 			    ehdr.e_ident[EI_DATA] != order)
+    104 				*perr = G_ISAINVAL;
+    105 		}
+    106 	} else if (errno == EACCES || errno == EPERM)
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/lib/libproc/common/Pcore.c#Pfgrab_core
+   1664 /*
+   1665  * Main engine for core file initialization: given an fd for the core file
+   1666  * and an optional pathname, construct the ps_prochandle.  The aout_path can
+   1667  * either be a suggested executable pathname, or a suggested directory to
+   1668  * use as a possible current working directory.
+   1669  */
+   1670 struct ps_prochandle *
+   1671 Pfgrab_core(int core_fd, const char *aout_path, int *perr)
+   1672 {
+   1673 	struct ps_prochandle *P;
+   1674 	map_info_t *stk_mp, *brk_mp;
+   1675 	const char *execname;
+   1676 	char *interp;
+   1677 	int i, notes, pagesize;
+   1678 	uintptr_t addr, base_addr;
+   1679 	struct stat64 stbuf;
+   1680 	void *phbuf, *php;
+   1681 	size_t nbytes;
+   1682 
+   1683 	elf_file_t aout;
+   1684 	elf_file_t core;
+   1685 
+   1686 	Elf_Scn *scn, *intp_scn = NULL;
+   1687 	Elf_Data *dp;
+   1688 
+   1689 	GElf_Phdr phdr, note_phdr;
+   1690 	GElf_Shdr shdr;
+   1691 	GElf_Xword nleft;
+   1692 
+   1693 	if (elf_version(EV_CURRENT) == EV_NONE) {
+   1694 		dprintf("libproc ELF version is more recent than libelf\n");
+   1695 		*perr = G_ELF;
+   1696 		return (NULL);
+   1697 	}
+   1698 
+   1699 	aout.e_elf = NULL;
+   1700 	aout.e_fd = -1;
+   1701 
+   1702 	core.e_elf = NULL;
+   1703 	core.e_fd = core_fd;
+   1704 
+   1705 	/*
+   1706 	 * Allocate and initialize a ps_prochandle structure for the core.
+   1707 	 * There are several key pieces of initialization here:
+   1708 	 *
+   1709 	 * 1. The PS_DEAD state flag marks this prochandle as a core file.
+   1710 	 *    PS_DEAD also thus prevents all operations which require state
+   1711 	 *    to be PS_STOP from operating on this handle.
+   1712 	 *
+   1713 	 * 2. We keep the core file fd in P->asfd since the core file contains
+   1714 	 *    the remnants of the process address space.
+   1715 	 *
+   1716 	 * 3. We set the P->info_valid bit because all information about the
+   1717 	 *    core is determined by the end of this function; there is no need
+   1718 	 *    for proc_update_maps() to reload mappings at any later point.
+   1719 	 *
+   1720 	 * 4. The read/write ops vector uses our core_rw() function defined
+   1721 	 *    above to handle i/o requests.
+   1722 	 */
+   1723 	if ((P = malloc(sizeof (struct ps_prochandle))) == NULL) {
+   1724 		*perr = G_STRANGE;
+   1725 		return (NULL);
+   1726 	}
+   1727 
+   1728 	(void) memset(P, 0, sizeof (struct ps_prochandle));
+   1729 	(void) mutex_init(&P->proc_lock, USYNC_THREAD, NULL);
+   1730 	P->state = PS_DEAD;
+   1731 	P->pid = (pid_t)-1;
+   1732 	P->asfd = core.e_fd;
+   1733 	P->ctlfd = -1;
+   1734 	P->statfd = -1;
+   1735 	P->agentctlfd = -1;
+   1736 	P->agentstatfd = -1;
+   1737 	P->zoneroot = NULL;
+   1738 	P->info_valid = 1;
+   1739 	P->ops = &P_core_ops;
+   1740 
+   1741 	Pinitsym(P);
+   1742 
+   1743 	/*
+   1744 	 * Fstat and open the core file and make sure it is a valid ELF core.
+   1745 	 */
+   1746 	if (fstat64(P->asfd, &stbuf) == -1) {
+   1747 		*perr = G_STRANGE;
+   1748 		goto err;
+   1749 	}
+   1750 
+   1751 	if (core_elf_fdopen(&core, ET_CORE, perr) == -1)
+   1752 		goto err;
+   1753 
+   1754 	/*
+   1755 	 * Allocate and initialize a core_info_t to hang off the ps_prochandle
+   1756 	 * structure.  We keep all core-specific information in this structure.
+   1757 	 */
+   1758 	if ((P->core = calloc(1, sizeof (core_info_t))) == NULL) {
+   1759 		*perr = G_STRANGE;
+   1760 		goto err;
+   1761 	}
+   1762 
+   1763 	list_link(&P->core->core_lwp_head, NULL);
+   1764 	P->core->core_size = stbuf.st_size;
+   1765 	/*
+   1766 	 * In the days before adjustable core file content, this was the
+   1767 	 * default core file content. For new core files, this value will
+   1768 	 * be overwritten by the NT_CONTENT note section.
+   1769 	 */
+   1770 	P->core->core_content = CC_CONTENT_STACK | CC_CONTENT_HEAP |
+   1771 	    CC_CONTENT_DATA | CC_CONTENT_RODATA | CC_CONTENT_ANON |
+   1772 	    CC_CONTENT_SHANON;
+   1773 
+   1774 	switch (core.e_hdr.e_ident[EI_CLASS]) {
+   1775 	case ELFCLASS32:
+   1776 		P->core->core_dmodel = PR_MODEL_ILP32;
+   1777 		break;
+   1778 	case ELFCLASS64:
+   1779 		P->core->core_dmodel = PR_MODEL_LP64;
+   1780 		break;
+   1781 	default:
+   1782 		*perr = G_FORMAT;
+   1783 		goto err;
+   1784 	}
+   1785 
+   1786 	/*
+   1787 	 * Because the core file may be a large file, we can't use libelf to
+   1788 	 * read the Phdrs.  We use e_phnum and e_phentsize to simplify things.
+   1789 	 */
+   1790 	nbytes = core.e_hdr.e_phnum * core.e_hdr.e_phentsize;
+   1791 
+   1792 	if ((phbuf = malloc(nbytes)) == NULL) {
+   1793 		*perr = G_STRANGE;
+   1794 		goto err;
+   1795 	}
+   1796 
+   1797 	if (pread64(core_fd, phbuf, nbytes, core.e_hdr.e_phoff) != nbytes) {
+   1798 		*perr = G_STRANGE;
+   1799 		free(phbuf);
+   1800 		goto err;
+   1801 	}
+   1802 
+   1803 	/*
+   1804 	 * Iterate through the program headers in the core file.
+   1805 	 * We're interested in two types of Phdrs: PT_NOTE (which
+   1806 	 * contains a set of saved /proc structures), and PT_LOAD (which
+   1807 	 * represents a memory mapping from the process's address space).
+   1808 	 * In the case of PT_NOTE, we're interested in the last PT_NOTE
+   1809 	 * in the core file; currently the first PT_NOTE (if present)
+   1810 	 * contains /proc structs in the pre-2.6 unstructured /proc format.
+   1811 	 */
+   1812 	for (php = phbuf, notes = 0, i = 0; i < core.e_hdr.e_phnum; i++) {
+   1813 		if (core.e_hdr.e_ident[EI_CLASS] == ELFCLASS64)
+   1814 			(void) memcpy(&phdr, php, sizeof (GElf_Phdr));
+   1815 		else
+   1816 			core_phdr_to_gelf(php, &phdr);
+   1817 
+   1818 		switch (phdr.p_type) {
+   1819 		case PT_NOTE:
+   1820 			note_phdr = phdr;
+   1821 			notes++;
+   1822 			break;
+   1823 
+   1824 		case PT_LOAD:
+   1825 			if (core_add_mapping(P, &phdr) == -1) {
+   1826 				*perr = G_STRANGE;
+   1827 				free(phbuf);
+   1828 				goto err;
+   1829 			}
+   1830 			break;
+   1831 		}
+   1832 
+   1833 		php = (char *)php + core.e_hdr.e_phentsize;
+   1834 	}
+   1835 
+   1836 	free(phbuf);
+   1837 
+   1838 	Psort_mappings(P);
+   1839 
+   1840 	/*
+   1841 	 * If we couldn't find anything of type PT_NOTE, or only one PT_NOTE
+   1842 	 * was present, abort.  The core file is either corrupt or too old.
+   1843 	 */
+   1844 	if (notes == 0 || notes == 1) {
+   1845 		*perr = G_NOTE;
+   1846 		goto err;
+   1847 	}
+   1848 
+   1849 	/*
+   1850 	 * Advance the seek pointer to the start of the PT_NOTE data
+   1851 	 */
+   1852 	if (lseek64(P->asfd, note_phdr.p_offset, SEEK_SET) == (off64_t)-1) {
+   1853 		dprintf("Pgrab_core: failed to lseek to PT_NOTE data\n");
+   1854 		*perr = G_STRANGE;
+   1855 		goto err;
+   1856 	}
+   1857 
+   1858 	/*
+   1859 	 * Now process the PT_NOTE structures.  Each one is preceded by
+   1860 	 * an Elf{32/64}_Nhdr structure describing its type and size.
+   1861 	 *
+   1862 	 *  +--------+
+   1863 	 *  | header |
+   1864 	 *  +--------+
+   1865 	 *  | name   |
+   1866 	 *  | ...    |
+   1867 	 *  +--------+
+   1868 	 *  | desc   |
+   1869 	 *  | ...    |
+   1870 	 *  +--------+
+   1871 	 */
+   1872 	for (nleft = note_phdr.p_filesz; nleft > 0; ) {
+   1873 		Elf64_Nhdr nhdr;
+   1874 		off64_t off, namesz;
+   1875 
+   1876 		/*
+   1877 		 * Although <sys/elf.h> defines both Elf32_Nhdr and Elf64_Nhdr
+   1878 		 * as different types, they are both of the same content and
+   1879 		 * size, so we don't need to worry about 32/64 conversion here.
+   1880 		 */
+   1881 		if (read(P->asfd, &nhdr, sizeof (nhdr)) != sizeof (nhdr)) {
+   1882 			dprintf("Pgrab_core: failed to read ELF note header\n");
+   1883 			*perr = G_NOTE;
+   1884 			goto err;
+   1885 		}
+   1886 
+   1887 		/*
+   1888 		 * According to the System V ABI, the amount of padding
+   1889 		 * following the name field should align the description
+   1890 		 * field on a 4 byte boundary for 32-bit binaries or on an 8
+   1891 		 * byte boundary for 64-bit binaries. However, this change
+   1892 		 * was not made correctly during the 64-bit port so all
+   1893 		 * descriptions can assume only 4-byte alignment. We ignore
+   1894 		 * the name field and the padding to 4-byte alignment.
+   1895 		 */
+   1896 		namesz = P2ROUNDUP((off64_t)nhdr.n_namesz, (off64_t)4);
+   1897 		if (lseek64(P->asfd, namesz, SEEK_CUR) == (off64_t)-1) {
+   1898 			dprintf("failed to seek past name and padding\n");
+   1899 			*perr = G_STRANGE;
+   1900 			goto err;
+   1901 		}
+   1902 
+   1903 		dprintf("Note hdr n_type=%u n_namesz=%u n_descsz=%u\n",
+   1904 		    nhdr.n_type, nhdr.n_namesz, nhdr.n_descsz);
+   1905 
+   1906 		off = lseek64(P->asfd, (off64_t)0L, SEEK_CUR);
+   1907 
+   1908 		/*
+   1909 		 * Invoke the note handler function from our table
+   1910 		 */
+   1911 		if (nhdr.n_type < sizeof (nhdlrs) / sizeof (nhdlrs[0])) {
+   1912 			if (nhdlrs[nhdr.n_type](P, nhdr.n_descsz) < 0) {
+   1913 				*perr = G_NOTE;
+   1914 				goto err;
+   1915 			}
+   1916 		} else
+   1917 			(void) note_notsup(P, nhdr.n_descsz);
+   1918 
+   1919 		/*
+   1920 		 * Seek past the current note data to the next Elf_Nhdr
+   1921 		 */
+   1922 		if (lseek64(P->asfd, off + nhdr.n_descsz,
+   1923 		    SEEK_SET) == (off64_t)-1) {
+   1924 			dprintf("Pgrab_core: failed to seek to next nhdr\n");
+   1925 			*perr = G_STRANGE;
+   1926 			goto err;
+   1927 		}
+   1928 
+   1929 		/*
+   1930 		 * Subtract the size of the header and its data from what
+   1931 		 * we have left to process.
+   1932 		 */
+   1933 		nleft -= sizeof (nhdr) + namesz + nhdr.n_descsz;
+   1934 	}
+   1935 
+   1936 	if (nleft != 0) {
+   1937 		dprintf("Pgrab_core: note section malformed\n");
+   1938 		*perr = G_STRANGE;
+   1939 		goto err;
+   1940 	}
+   1941 
+   1942 	if ((pagesize = Pgetauxval(P, AT_PAGESZ)) == -1) {
+   1943 		pagesize = getpagesize();
+   1944 		dprintf("AT_PAGESZ missing; defaulting to %d\n", pagesize);
+   1945 	}
+   1946 
+   1947 	/*
+   1948 	 * Locate and label the mappings corresponding to the end of the
+   1949 	 * heap (MA_BREAK) and the base of the stack (MA_STACK).
+   1950 	 */
+   1951 	if ((P->status.pr_brkbase != 0 || P->status.pr_brksize != 0) &&
+   1952 	    (brk_mp = Paddr2mptr(P, P->status.pr_brkbase +
+   1953 	    P->status.pr_brksize - 1)) != NULL)
+   1954 		brk_mp->map_pmap.pr_mflags |= MA_BREAK;
+   1955 	else
+   1956 		brk_mp = NULL;
+   1957 
+   1958 	if ((stk_mp = Paddr2mptr(P, P->status.pr_stkbase)) != NULL)
+   1959 		stk_mp->map_pmap.pr_mflags |= MA_STACK;
+   1960 
+   1961 	/*
+   1962 	 * At this point, we have enough information to look for the
+   1963 	 * executable and open it: we have access to the auxv, a psinfo_t,
+   1964 	 * and the ability to read from mappings provided by the core file.
+   1965 	 */
+   1966 	(void) Pfindexec(P, aout_path, core_exec_open, &aout);
+   1967 	dprintf("P->execname = \"%s\"\n", P->execname ? P->execname : "NULL");
+   1968 	execname = P->execname ? P->execname : "a.out";
+   1969 
+   1970 	/*
+   1971 	 * Iterate through the sections, looking for the .dynamic and .interp
+   1972 	 * sections.  If we encounter them, remember their section pointers.
+   1973 	 */
+   1974 	for (scn = NULL; (scn = elf_nextscn(aout.e_elf, scn)) != NULL; ) {
+   1975 		char *sname;
+   1976 
+   1977 		if ((gelf_getshdr(scn, &shdr) == NULL) ||
+   1978 		    (sname = elf_strptr(aout.e_elf, aout.e_hdr.e_shstrndx,
+   1979 		    (size_t)shdr.sh_name)) == NULL)
+   1980 			continue;
+   1981 
+   1982 		if (strcmp(sname, ".interp") == 0)
+   1983 			intp_scn = scn;
+   1984 	}
+   1985 
+   1986 	/*
+   1987 	 * Get the AT_BASE auxv element.  If this is missing (-1), then
+   1988 	 * we assume this is a statically-linked executable.
+   1989 	 */
+   1990 	base_addr = Pgetauxval(P, AT_BASE);
+   1991 
+   1992 	/*
+   1993 	 * In order to get librtld_db initialized, we'll need to identify
+   1994 	 * and name the mapping corresponding to the run-time linker.  The
+   1995 	 * AT_BASE auxv element tells us the address where it was mapped,
+   1996 	 * and the .interp section of the executable tells us its path.
+   1997 	 * If for some reason that doesn't pan out, just use ld.so.1.
+   1998 	 */
+   1999 	if (intp_scn != NULL && (dp = elf_getdata(intp_scn, NULL)) != NULL &&
+   2000 	    dp->d_size != 0) {
+   2001 		dprintf(".interp = <%s>\n", (char *)dp->d_buf);
+   2002 		interp = dp->d_buf;
+   2003 
+   2004 	} else if (base_addr != (uintptr_t)-1L) {
+   2005 		if (P->core->core_dmodel == PR_MODEL_LP64)
+   2006 			interp = "/usr/lib/64/ld.so.1";
+   2007 		else
+   2008 			interp = "/usr/lib/ld.so.1";
+   2009 
+   2010 		dprintf(".interp section is missing or could not be read; "
+   2011 		    "defaulting to %s\n", interp);
+   2012 	} else
+   2013 		dprintf("detected statically linked executable\n");
+   2014 
+   2015 	/*
+   2016 	 * If we have an AT_BASE element, name the mapping at that address
+   2017 	 * using the interpreter pathname.  Name the corresponding data
+   2018 	 * mapping after the interpreter as well.
+   2019 	 */
+   2020 	if (base_addr != (uintptr_t)-1L) {
+   2021 		elf_file_t intf;
+   2022 
+   2023 		P->map_ldso = core_name_mapping(P, base_addr, interp);
+   2024 
+   2025 		if (core_elf_open(&intf, interp, ET_DYN, NULL) == 0) {
+   2026 			rd_loadobj_t rl;
+   2027 			map_info_t *dmp;
+   2028 
+   2029 			rl.rl_base = base_addr;
+   2030 			dmp = core_find_data(P, intf.e_elf, &rl);
+   2031 
+   2032 			if (dmp != NULL) {
+   2033 				dprintf("renamed data at %p to %s\n",
+   2034 				    (void *)rl.rl_data_base, interp);
+   2035 				(void) strncpy(dmp->map_pmap.pr_mapname,
+   2036 				    interp, PRMAPSZ);
+   2037 				dmp->map_pmap.pr_mapname[PRMAPSZ - 1] = '\0';
+   2038 			}
+   2039 		}
+   2040 
+   2041 		core_elf_close(&intf);
+   2042 	}
+   2043 
+   2044 	/*
+   2045 	 * If we have an AT_ENTRY element, name the mapping at that address
+   2046 	 * using the special name "a.out" just like /proc does.
+   2047 	 */
+   2048 	if ((addr = Pgetauxval(P, AT_ENTRY)) != (uintptr_t)-1L)
+   2049 		P->map_exec = core_name_mapping(P, addr, "a.out");
+   2050 
+   2051 	/*
+   2052 	 * If we're a statically linked executable, then just locate the
+   2053 	 * executable's text and data and name them after the executable.
+   2054 	 */
+   2055 	if (base_addr == (uintptr_t)-1L) {
+   2056 		map_info_t *tmp, *dmp;
+   2057 		file_info_t *fp;
+   2058 		rd_loadobj_t rl;
+   2059 
+   2060 		if ((tmp = core_find_text(P, aout.e_elf, &rl)) != NULL &&
+   2061 		    (dmp = core_find_data(P, aout.e_elf, &rl)) != NULL) {
+   2062 			(void) strncpy(tmp->map_pmap.pr_mapname,
+   2063 			    execname, PRMAPSZ);
+   2064 			tmp->map_pmap.pr_mapname[PRMAPSZ - 1] = '\0';
+   2065 			(void) strncpy(dmp->map_pmap.pr_mapname,
+   2066 			    execname, PRMAPSZ);
+   2067 			dmp->map_pmap.pr_mapname[PRMAPSZ - 1] = '\0';
+   2068 		}
+   2069 
+   2070 		if ((P->map_exec = tmp) != NULL &&
+   2071 		    (fp = malloc(sizeof (file_info_t))) != NULL) {
+   2072 
+   2073 			(void) memset(fp, 0, sizeof (file_info_t));
+   2074 
+   2075 			list_link(fp, &P->file_head);
+   2076 			tmp->map_file = fp;
+   2077 			P->num_files++;
+   2078 
+   2079 			fp->file_ref = 1;
+   2080 			fp->file_fd = -1;
+   2081 
+   2082 			fp->file_lo = malloc(sizeof (rd_loadobj_t));
+   2083 			fp->file_lname = strdup(execname);
+   2084 
+   2085 			if (fp->file_lo)
+   2086 				*fp->file_lo = rl;
+   2087 			if (fp->file_lname)
+   2088 				fp->file_lbase = basename(fp->file_lname);
+   2089 			if (fp->file_rname)
+   2090 				fp->file_rbase = basename(fp->file_rname);
+   2091 
+   2092 			(void) strcpy(fp->file_pname,
+   2093 			    P->mappings[0].map_pmap.pr_mapname);
+   2094 			fp->file_map = tmp;
+   2095 
+   2096 			Pbuild_file_symtab(P, fp);
+   2097 
+   2098 			if (dmp != NULL) {
+   2099 				dmp->map_file = fp;
+   2100 				fp->file_ref++;
+   2101 			}
+   2102 		}
+   2103 	}
+   2104 
+   2105 	core_elf_close(&aout);
+   2106 
+   2107 	/*
+   2108 	 * We now have enough information to initialize librtld_db.
+   2109 	 * After it warms up, we can iterate through the load object chain
+   2110 	 * in the core, which will allow us to construct the file info
+   2111 	 * we need to provide symbol information for the other shared
+   2112 	 * libraries, and also to fill in the missing mapping names.
+   2113 	 */
+   2114 	rd_log(_libproc_debug);
+   2115 
+   2116 	if ((P->rap = rd_new(P)) != NULL) {
+   2117 		(void) rd_loadobj_iter(P->rap, (rl_iter_f *)
+   2118 		    core_iter_mapping, P);
+   2119 
+   2120 		if (P->core->core_errno != 0) {
+   2121 			errno = P->core->core_errno;
+   2122 			*perr = G_STRANGE;
+   2123 			goto err;
+   2124 		}
+   2125 	} else
+   2126 		dprintf("failed to initialize rtld_db agent\n");
+   2127 
+   2128 	/*
+   2129 	 * If there are sections, load them and process the data from any
+   2130 	 * sections that we can use to annotate the file_info_t's.
+   2131 	 */
+   2132 	core_load_shdrs(P, &core);
+   2133 
+   2134 	/*
+   2135 	 * If we previously located a stack or break mapping, and they are
+   2136 	 * still anonymous, we now assume that they were MAP_ANON mappings.
+   2137 	 * If brk_mp turns out to now have a name, then the heap is still
+   2138 	 * sitting at the end of the executable's data+bss mapping: remove
+   2139 	 * the previous MA_BREAK setting to be consistent with /proc.
+   2140 	 */
+   2141 	if (stk_mp != NULL && stk_mp->map_pmap.pr_mapname[0] == '\0')
+   2142 		stk_mp->map_pmap.pr_mflags |= MA_ANON;
+   2143 	if (brk_mp != NULL && brk_mp->map_pmap.pr_mapname[0] == '\0')
+   2144 		brk_mp->map_pmap.pr_mflags |= MA_ANON;
+   2145 	else if (brk_mp != NULL)
+   2146 		brk_mp->map_pmap.pr_mflags &= ~MA_BREAK;
+   2147 
+   2148 	*perr = 0;
+   2149 	return (P);
+   2150 
+   2151 err:
+   2152 	Pfree(P);
+   2153 	core_elf_close(&aout);
+   2154 	return (NULL);
+   2155 }
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/lib/libproc/common/Pcontrol.h#210
+   193 struct ps_prochandle {
+    194 	struct ps_lwphandle **hashtab;	/* hash table for LWPs (Lgrab()) */
+    195 	mutex_t	proc_lock;	/* protects hash table; serializes Lgrab() */
+    196 	pstatus_t orig_status;	/* remembered status on Pgrab() */
+    197 	pstatus_t status;	/* status when stopped */
+    198 	psinfo_t psinfo;	/* psinfo_t from last Ppsinfo() request */
+    199 	uintptr_t sysaddr;	/* address of most recent syscall instruction */
+    200 	pid_t	pid;		/* process-ID */
+    201 	int	state;		/* state of the process, see "libproc.h" */
+    202 	uint_t	flags;		/* see defines below */
+    203 	uint_t	agentcnt;	/* Pcreate_agent()/Pdestroy_agent() ref count */
+    204 	int	asfd;		/* /proc/<pid>/as filedescriptor */
+    205 	int	ctlfd;		/* /proc/<pid>/ctl filedescriptor */
+    206 	int	statfd;		/* /proc/<pid>/status filedescriptor */
+    207 	int	agentctlfd;	/* /proc/<pid>/lwp/agent/ctl */
+    208 	int	agentstatfd;	/* /proc/<pid>/lwp/agent/status */
+    209 	int	info_valid;	/* if zero, map and file info need updating */
+    210 	map_info_t *mappings;	/* cached process mappings */ 配列になっていて、個数はこの後ろの map_countらしい。
+                ^^^^^^^^^^^^^^^^^^^^^^
+    211 	size_t	map_count;	/* number of mappings */
+    212 	size_t	map_alloc;	/* number of mappings allocated */
+    213 	uint_t	num_files;	/* number of file elements in file_info */
+    214 	plist_t	file_head;	/* head of mapped files w/ symbol table info */
+    215 	char	*execname;	/* name of the executable file */
+    216 	auxv_t	*auxv;		/* the process's aux vector */
+    217 	int	nauxv;		/* number of aux vector entries */
+    218 	rd_agent_t *rap;	/* cookie for rtld_db */
+    219 	map_info_t *map_exec;	/* the mapping for the executable file */
+    220 	map_info_t *map_ldso;	/* the mapping for ld.so.1 */
+    221 	const ps_rwops_t *ops;	/* pointer to ops-vector for read and write */
+    222 	core_info_t *core;	/* information specific to core (if PS_DEAD) */
+    223 	uintptr_t *ucaddrs;	/* ucontext-list addresses */
+    224 	uint_t	ucnelems;	/* number of elements in the ucaddrs list */
+    225 	char	*zoneroot;	/* cached path to zone root */
+    226 };
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/lib/libproc/common/Pcontrol.h#120
+    120 typedef struct map_info {	/* description of an address space mapping */
+    121 	prmap_t	map_pmap;	/* /proc description of this mapping */
+                ^^^^^^^^^^^^^^^^^^
+    122 	file_info_t *map_file;	/* pointer into list of mapped files */
+    123 	off64_t map_offset;	/* offset into core file (if core) */ !!! ## here これかー
+    124 	int map_relocate;	/* associated file_map needs to be relocated */
+    125 } map_info_t;
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/uts/common/sys/procfs.h#332
+    319 /*
+    320  * Memory-map interface.  /proc/<pid>/map /proc/<pid>/rmap
+    321  */
+    322 #define	PRMAPSZ	64
+    323 typedef struct prmap {
+    324 	uintptr_t pr_vaddr;	/* virtual address of mapping */
+    325 	size_t	pr_size;	/* size of mapping in bytes */
+    326 	char	pr_mapname[PRMAPSZ];	/* name in /proc/<pid>/object */
+    327 	offset_t pr_offset;	/* offset into mapped object, if any */
+    328 	int	pr_mflags;	/* protection and attribute flags (see below) */
+    329 	int	pr_pagesize;	/* pagesize (bytes) for this mapping */
+    330 	int	pr_shmid;	/* SysV shmid, -1 if not SysV shared memory */
+    331 	int	pr_filler[1];	/* filler for future expansion */
+    332 } prmap_t;
+
+
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/cmd/ptools/pmap/pmap.c#441
+    444 			/*
+    445 			 * Gather data
+    446 			 */
+     :
+    461 				else
+    462 					rc += Pmapping_iter_resolved(Pr,
+                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    463 					    gather_map, NULL);
+                                                    ^^^^^^^^^^^^^^^^^^
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/lib/libproc/common/Psymtab.c#Pmapping_iter_resolved
+   2653 Pmapping_iter_resolved(struct ps_prochandle *P, proc_map_f *func, void *cd)
+   2654 {
+   2655 	return (i_Pmapping_iter(P, B_TRUE, func, cd));
+   2656 }
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/lib/libproc/common/Psymtab.c#i_Pmapping_iter
+   2621 i_Pmapping_iter(struct ps_prochandle *P, boolean_t lmresolve,
+   2622     proc_map_f *func, void *cd)
+   2623 {
+   2624 	map_info_t *mptr;
+   2625 	file_info_t *fptr;
+   2626 	char *object_name;
+   2627 	int rc = 0;
+   2628 	int i;
+   2629 
+   2630 	/* create all the file_info_t's for all the mappings */
+   2631 	(void) Prd_agent(P);
+   2632 
+   2633 	for (i = 0, mptr = P->mappings; i < P->map_count; i++, mptr++) {
+   2634 		if ((fptr = mptr->map_file) == NULL)
+   2635 			object_name = NULL;
+   2636 		else if (lmresolve && (fptr->file_rname != NULL))
+   2637 			object_name = fptr->file_rname;
+   2638 		else
+   2639 			object_name = fptr->file_lname;
+   2640 		if ((rc = func(cd, &mptr->map_pmap, object_name)) != 0)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   2641 			return (rc);
+   2642 	}
+   2643 	return (0);
+   2644 }
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/cmd/ptools/pmap/pmap.c#gather_map
+   1196 gather_map(void *ignored, const prmap_t *map, const char *objname)
+   1197 {
+   1198 	mapdata_t *data;
+   1199 
+   1200 	/* Skip mappings which are outside the range specified by -A */
+   1201 	if (!address_in_range(map->pr_vaddr,
+   1202 	    map->pr_vaddr + map->pr_size, map->pr_pagesize))
+   1203 		return (0);
+   1204 
+   1205 	data = nextmap();
+   1206 	data->md_map = *map;
+   1207 	if (data->md_objname != NULL)
+   1208 		free(data->md_objname);
+   1209 	data->md_objname = objname ? strdup(objname) : NULL;
+   1210 
+   1211 	return (0);
+   1212 }
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/cmd/ptools/pmap/pmap.c#mapdata_t
+    154 typedef struct {
+    155 	prxmap_t	md_xmap;
+    156 	prmap_t		md_map;
+    157 	char		*md_objname;
+    158 	boolean_t	md_last;
+    159 	int		md_doswap;
+    160 } mapdata_t;
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/uts/common/sys/elf.h#Elf64_Sym
+    510 #if defined(_LP64) || defined(_LONGLONG_TYPE)
+    511 typedef struct {
+    512 	Elf64_Word	st_name;
+    513 	unsigned char	st_info;	/* bind, type: ELF_64_ST_... */
+    514 	unsigned char	st_other;
+    515 	Elf64_Half	st_shndx;	/* SHN_... */
+    516 	Elf64_Addr	st_value;
+    517 	Elf64_Xword	st_size;
+    518 } Elf64_Sym;
+    519 #endif	/* defined(_LP64) || defined(_LONGLONG_TYPE) */
+
+http://src.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/lib/libproc/common/Pcontrol.h#159
+    139 typedef struct core_info {	/* information specific to core files */
+    140 	char core_dmodel;	/* data model for core file */
+    141 	int core_errno;		/* error during initialization if != 0 */
+    142 	plist_t core_lwp_head;	/* head of list of lwp info */
+    143 	lwp_info_t *core_lwp;	/* current lwp information */
+    144 	uint_t core_nlwp;	/* number of lwp's in list */
+    145 	off64_t core_size;	/* size of core file in bytes */
+    146 	char *core_platform;	/* platform string from core file */
+    147 	struct utsname *core_uts;	/* uname(2) data from core file */
+    148 	prcred_t *core_cred;	/* process credential from core file */
+    149 	core_content_t core_content;	/* content dumped to core file */
+    150 	prpriv_t *core_priv;	/* process privileges from core file */
+    151 	size_t core_priv_size;	/* size of the privileges */
+    152 	void *core_privinfo;	/* system privileges info from core file */
+    153 	priv_impl_info_t *core_ppii;	/* NOTE entry for core_privinfo */
+    154 	char *core_zonename;	/* zone name from core file */
+    155 #if defined(__i386) || defined(__amd64)
+    156 	struct ssd *core_ldt;	/* LDT entries from core file */
+    157 	uint_t core_nldt;	/* number of LDT entries in core file */
+    158 #endif
+    159 } core_info_t;
+
+
+

@@ -1,0 +1,10 @@
+Following header files were copied from opensolaris source tree.
+
+  Pcontrol.h
+  libproc.h
+  mtlib.h
+  Putil.h
+  mallint.h
+
+These file could likely be changed in future.
+In such a case, compile would fail.

@@ -1,0 +1,39 @@
+What is heapstat
+=====================
+
+hpeapstat is a command to analyze and show process's heap space usage.
+
+How To Use
+======================
+
+run command with core file name as an argument
+
+Usage: heapstat [-d|-v] core_file
+   -d   : debug output
+   -v   : verbose output
+
+Example)
+
+ $ heapstat /var/tmp/core.23305
+ ==============================
+ Heap Usage
+ ==============================
+ heap size       :    132972544 (126 MB)
+ freed free size :            0 (0 B)
+ Last free size  :           33 (33 B)
+ free list size  :            0 (0 B)
+ small size      :     52427776 (49 MB)
+ bottom size     :     54119632 (51 MB)
+ 
+ used size       :     26425103 (25 MB)
+ 
+How To Compile
+======================
+
+ % ./configure
+ % make
+
+If you want to copy it to /usr/local/bin, run
+make install command as super user.
+
+ # make install

@@ -1,0 +1,23 @@
+CONFIGURE_FILES = Makefile config.status config.cache config.h config.log autom4te.cache
+CC = @CC@
+DEFS = @DEFS@
+CFLAGS = -g -I.  $(DEFS) @CFLAGS@ 
+LD_FLAGS = @LD_OPT@
+LN = /usr/bin/ln
+PRODUCTS = leak
+INSTALL = @INSTALL@
+TEMPFILES = *~ .*~ .\#* \#*\#
+
+all: $(PRODUCTS)
+
+leak: 
+	${CC} $(CFLAGS) -o $@ leak.c
+
+clean:
+	-rm -f $(PRODUCTS) $(TEMPFILES) 
+
+distclean: 
+	-rm -fr $(CONFIGURE_FILES) $(TEMPFILES) 
+
+test: 
+	echo "not implemented"

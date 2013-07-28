@@ -1,0 +1,34 @@
+CONFIGURE_FILES = Makefile config.status config.cache config.h config.log autom4te.cache
+CC = @CC@
+DEFS = @DEFS@
+CFLAGS = -g -I. -lproc $(DEFS) @CFLAGS@ # -Wall
+LD_FLAGS = @LD_OPT@
+LN = /usr/bin/ln
+PRODUCTS = heapstat
+INSTALL = @INSTALL@
+TEMPFILES = *~ .*~ .\#* \#*\#
+
+all: $(PRODUCTS)
+
+heapstat: heapstat.c heapstat.h
+	${CC} $(CFLAGS) -o $@ heapstat.c
+
+leak: 
+	cd heapstat-test ; make
+
+install: heapstat
+	$(INSTALL) -d -m 0755 -o root -g bin /usr/local/bin
+	-$(INSTALL) -m 0755 -o root -g bin heapstat /usr/local/bin
+
+uninstall:
+	-rm /usr/local/bin/heapstat
+
+reinstall: uninstall install
+
+clean:
+	-rm -f $(PRODUCTS) $(TEMPFILES) 
+	cd heapstat-test ; make clean
+
+distclean: 
+	-rm -fr $(CONFIGURE_FILES) $(TEMPFILES)
+	cd heapstat-test ; make distclean
