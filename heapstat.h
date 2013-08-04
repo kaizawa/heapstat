@@ -1,16 +1,19 @@
 #ifndef _NHEAPSOLARIS_H
 #define _NHEAPSOLARIS_H
+#include "Pcontrol.h"
 void print_usage(char *);
-void find_heap();
-void report_heap_usage();
-int count_free(TREE *);
-size_t get_free_tree_size ();
-size_t get_lfree_size ();
-size_t get_flist_free_size();
-size_t get_small_free_size();
-size_t get_bottom_size();
-uintptr_t get_vaddr_by_symbol(char *);
-uintptr_t get_pointer_value_by_symbol(char *);
+void find_heap(struct ps_prochandle *);
+void print_heap_usage(struct ps_prochandle *);
+void print_process_info(struct ps_prochandle *);
+int count_free(struct ps_prochandle *, TREE *);
+size_t get_free_tree_size (struct ps_prochandle *);
+size_t get_lfree_size (struct ps_prochandle *);
+size_t get_flist_free_size(struct ps_prochandle *);
+size_t get_small_free_size(struct ps_prochandle *);
+size_t get_bottom_size(struct ps_prochandle *);
+uintptr_t get_vaddr_by_symbol(struct ps_prochandle *, char *);
+uintptr_t get_pointer_value_by_symbol(struct ps_prochandle *, char *);
+struct ps_prochandle *get_prochandle(char *);
 
 char *print_unit(size_t);
 
