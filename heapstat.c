@@ -62,6 +62,7 @@ static	struct ps_prochandle *Pr;
 int debug = 0;
 int verbose = 0;
 int is_core = 1;
+int interval = 0;
 
 map_info_t *heap_mptr; /* mapinfo for heap */
 char size_strings[SIZE_STRING_LEN]; /* buffer for show size strings */
@@ -91,10 +92,17 @@ main (int argc, char *argv[])
         }
     }
 
-    if ((argc - optind) != 1) {
+    if ((argc - optind) < 1 || (argc - optind) > 2) {
         print_usage(argv[0]);
     }
     path = argv[optind++];
+    
+    if ((argc - optind) == 2) {
+        interval = atoi(argv[optind++]);
+        if (0 == interval) {
+            print_usage(argv[0]);
+        }
+    }
 
     /*
      * First, try to open option as core file.
@@ -173,9 +181,8 @@ main (int argc, char *argv[])
 void
 print_usage(char *argv)
 {
-    fprintf(stderr,"Usage: %s [-d|-v] core_file\n", argv);
-    fprintf(stderr,"   -d   : debug output\n");
-    fprintf(stderr,"   -v   : verbose output\n");    
+    fprintf(stderr,"Usage: %s [-v] { pid | core } [interval]\n", argv);
+    fprintf(stderr,"       -v: verbose output\n");    
     exit(0);    
 }
 
@@ -190,7 +197,6 @@ report_heap_usage()
     const pstatus_t *Psp;
     Psp = Pstatus(Pr);
 
-    // TODO: to make get_free_size to work. 
     size_t free_tree_size = get_free_tree_size();
     size_t heap_size = Psp->pr_brksize;
     size_t lfree_size = get_lfree_size();
@@ -204,7 +210,7 @@ report_heap_usage()
     printf("Heap Usage\n");
     printf("==============================\n");
     printf("heap size       : %12ld (%s)\n", heap_size, print_unit(heap_size));
-    printf("freed free size : %12ld (%s)\n", free_size, print_unit(free_size));
+    printf("freed free size : %12ld (%s)\n", free_tree_size, print_unit(free_tree_size));
     printf("free list size  : %12ld (%s)\n", flist_free_size, print_unit(flist_free_size));
     printf("    (last free) : %12ld (%s)\n", lfree_size, print_unit(lfree_size));    
     printf("small free size : %12ld (%s)\n", small_free_size, print_unit(small_free_size));
@@ -328,6 +334,7 @@ find_heap()
         printf("==============================\n");
         printf("All MAPs\n");
         printf("==============================\n");
+        printf("map count: %ld\n", Pr->map_count);
     }
     
     for (i = 0, mptr = Pr->mappings; i < Pr->map_count; i++, mptr++) {
@@ -340,29 +347,27 @@ find_heap()
         vaddr = pmap->pr_vaddr;
         size  = pmap->pr_size;
         offset = mptr->map_offset;
-        if(verbose)
+        if(verbose){
             printf("vaddr=0x%lx, file offset=0x%llx, size=%ld",
                    vaddr, offset, size);
-        if(pmap->pr_mflags & MA_ANON ){
+        }
+        if (pmap->pr_mflags & MA_ANON ) {
             if (vaddr + size > Psp->pr_brkbase
                 && vaddr < Psp->pr_brkbase + Psp->pr_brksize) {
-                if(verbose)
-                    printf ("[ heap ]");
+                if(verbose) { printf ("[ heap ]"); }
+                /* set to global variable */
                 heap_mptr = mptr;
+            } else {
+                if(verbose) { printf ("[ anon ]");}
             }
-            else
-                if(verbose)
-                    printf ("[ anon ]");                
         } else {
-            if(pmap->pr_mapname)
-                if(verbose)                
-                    printf ("[ %s ]", basename(pmap->pr_mapname));
+            if (pmap->pr_mapname) {
+                if(verbose) {printf ("[ %s ]", basename(pmap->pr_mapname)); }
+            }
         }
-        if(verbose)        
-            printf("\n");        
+        if(verbose) { printf("\n"); }
     }
-    if(verbose)    
-        printf("\n");    
+    if(verbose) { printf("\n"); }
 }
 
 /*****************************************************************************
