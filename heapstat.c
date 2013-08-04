@@ -63,12 +63,9 @@ int debug = 0;
 int verbose = 0;
 int is_core = 1;
 
-Ehdr *ehdr; /* ELF Header of core file */
 map_info_t *heap_mptr; /* mapinfo for heap */
-static TREE *List[MINSIZE/WORDSIZE-1]; /* lists of small blocks */
 char size_strings[SIZE_STRING_LEN]; /* buffer for show size strings */
 static int free_tree_nodes = 0;
-
 
 int
 main (int argc, char *argv[])
@@ -80,10 +77,8 @@ main (int argc, char *argv[])
     int prg_gflags = PGRAB_RDONLY;
     const pstatus_t *Psp;
     struct stat st;
-    int i;
-    GElf_Sym sym;
     off_t mmap_len;
-
+    
     while ((c = getopt(argc, argv, "dv")) != EOF) {        
         switch (c) {
             case 'd':
@@ -131,15 +126,6 @@ main (int argc, char *argv[])
         mmap_len = sizeof(long);
     }
 
-    /*
-     * map core file or /proc/<pid>/as file to memory.
-     */    
-    ehdr = (Ehdr *)mmap(0, mmap_len, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
-    if( ehdr < 0) {
-        perror("mmap error");
-        return (-1);
-    }
-    
     if ((Pr = proc_arg_grab(path, PR_ARG_ANY,
                             prg_gflags, &gcode)) == NULL) {
         (void) fprintf(stderr, "%s: cannot examine %s: %s\n",
@@ -148,64 +134,37 @@ main (int argc, char *argv[])
     }
 
     if(verbose){
-        char *p;
-        p = (char *) ehdr;
         printf("==============================\n");
         printf("General info\n");
         printf("==============================\n");
-        printf("mmap size: %lld\n",mmap_len);
-        printf("MINSIZE: %d\n", MINSIZE);
-        printf("WORDSIZE: %d\n", WORDSIZE);
-        printf("MINSIZE/WORDSIZE-1: %d\n", MINSIZE/WORDSIZE-1);
+        printf("mmap size: %ld\n",mmap_len);
+        printf("MINSIZE: %ld\n", MINSIZE);
+        printf("WORDSIZE: %ld\n", WORDSIZE);
+        printf("MINSIZE/WORDSIZE-1: %ld\n", MINSIZE/WORDSIZE-1);
         printf("CORESIZE: %d\n", CORESIZE);
-        printf("NPS: %d\n", WORDSIZE*8);        
+        printf("NPS: %ld\n", WORDSIZE*8);        
         printf("\n");
-    /*        
-        printf("==============================\n");
-        printf("ELF header\n");
-        printf("==============================\n");            
-        printf("ehdr: 0x%p\n", ehdr);  
-        printf("e_type: %d\n", ehdr->e_type);
-        printf("e_shentsize: %d\n", ehdr->e_shentsize);
-        printf("e_shnum: %d\n", ehdr->e_shnum);
-        printf("\n");        
-        printf("==============================\n");
-        printf("ELF header hex dump\n");
-        printf("==============================\n");
-        for ( i = 0 ; i < sizeof(Ehdr) ; i++ ){
-            if ( i > 0 && i % 16  == 0)
-                printf("\n");
-            printf("0x%.2x ", p[i]);
-        }
-        printf("\n\n");
-    */
     }
 
     Psp = Pstatus(Pr);
-    /*
+
     if(verbose) {
         printf("==============================\n");
         printf("Process info\n");
         printf("==============================\n");        
         printf("brkbase: 0x%lx\n",Psp->pr_brkbase);
-        printf("brksize: %d bytes (0x%lx)\n",Psp->pr_brksize, Psp->pr_brksize);
-        printf("heap range: 0x%p-0x%p\n",
-           Psp->pr_brkbase, Psp->pr_brkbase + Psp->pr_brksize);
+        printf("brksize: %ld bytes (0x%lx)\n",
+               Psp->pr_brksize, Psp->pr_brksize);
+        printf("heap range: 0x%lx-0x%lx\n",
+               Psp->pr_brkbase, Psp->pr_brkbase + Psp->pr_brksize);
         printf("\n");                        
     }
-    */
     
     find_heap();
 
     report_heap_usage();
 
-    /**
-     * Get GElf_Sym from symbole name
-    if(Plookup_by_name(Pr, PR_OBJ_EVERY, "Root", &sym) < 0){
-       fprintf(stderr, "Cannot get map for simbol\n");
-       exit(1);
-    }
-    */
+    exit(0);
 }
 
 /*****************************************************************************
@@ -218,123 +177,6 @@ print_usage(char *argv)
     fprintf(stderr,"   -d   : debug output\n");
     fprintf(stderr,"   -v   : verbose output\n");    
     exit(0);    
-}
-
-/*****************************************************************************
- * get_core_offset_by_vaddr
- *
- * Get file offset from process vaddr
- *****************************************************************************/
-offset_t
-get_core_offset_by_vaddr(uintptr_t vaddr)
-{
-    offset_t offset = 0;
-    offset_t diff;
-    
-    if(is_core){
-        diff = get_diff_by_vaddr(vaddr);
-        offset = vaddr - diff;    
-        if(debug){
-            fprintf(stderr, "get_core_offset_by_vaddr: vaddr=0x%p, offset=%ld(0x%lx)\n",
-                    vaddr, offset, offset);
-        }
-    }
-    
-    return offset;
-}
-
-/*****************************************************************************
- * get_core_mapaddr_by_vaddr
- *
- * Get mmap'ed address from process vaddr
- *****************************************************************************/
-uintptr_t
-get_core_mapaddr_by_vaddr(uintptr_t vaddr)
-{
-    if(debug) {
-        printf("get_core_mapaddr_by_vaddr: vaddr=0x%p\n", vaddr);
-    }
-    uintptr_t mapaddr;
-    offset_t offset = get_core_offset_by_vaddr(vaddr);
-    char *p = (char *) ehdr + offset;
-    if(debug){
-        fprintf(stderr, "get_core_mapaddr_by_vaddr: ehdr=%p, vaddr=0x%p, mapaddr=%p\n",
-                ehdr, vaddr, p);
-    }
-    return (uintptr_t)p;
-}
-
-/*****************************************************************************
- * get_vaddr_by_core_offset
- *
- * Get process vaddr from file offset
- *****************************************************************************/
-uintptr_t
-get_vaddr_by_core_offset(offset_t offset)
-{
-    offset_t diff = get_diff_by_vaddr(offset);
-    uintptr_t vaddr = offset + diff;
-    
-    if(debug)
-        printf("get_vaddr_by_core_offset: vaddr=0x%p, offset=%p\n", vaddr, offset);
-
-    return vaddr;
-}
-
-/*****************************************************************************
- * get_core_mapaddr_by_symname
- *
- * Get core file mmaped address of symbol
- *****************************************************************************/
-uintptr_t
-get_core_mapaddr_by_symname(char *symname)
-{
-    offset_t offset;
-    char *p;
-
-    offset = get_core_offset_by_symname(symname);
-    p  = (char *)ehdr + offset;
-
-    if(debug)
-        printf("get_core_mapaddr_by_symname: symname=\"%s\", ehdr=%p, mapaddr=%p\n",
-               symname, ehdr, p);
-    return (uintptr_t)p;
-}
-
-/*****************************************************************************
- * get_core_offset_by_symname
- *
- * Get core file offset of symbol within libc.so.1
- *****************************************************************************/
-offset_t
-get_core_offset_by_symname(char *symname)
-{
-    GElf_Sym sym;
-    offset_t offset;
-
-    /*
-     * NOTE: If I use PR_OBJ_EVERY, Lfree is resolved in libproc...
-     * So I had to specify module name. 
-     * if(Plookup_by_name(Pr, PR_OBJ_EVERY, symname, &sym) < 0){
-     */ 
-
-    // here
-    /* Get GElf_Sym from symbole name */    
-    if(Plookup_by_name(Pr, "libc.so.1", symname, &sym) < 0){        
-        fprintf(stderr, "Cannot get map for symbol\n");
-        exit(1);
-    }
-    
-    /*
-     * Now we know process vaddr of the symbol
-     * Convert it to core file file offset.
-     */
-    offset = get_core_offset_by_vaddr(sym.st_value);
-    
-    if(debug)
-        printf("get_core_offset_by_symname: symname=\"%s\", vaddr=0x%p, offset=%lu(0x%lx)\n",
-               symname, sym.st_value, offset, offset);
-    return offset;
 }
 
 /*****************************************************************************
@@ -361,47 +203,16 @@ report_heap_usage()
     printf("==============================\n");
     printf("Heap Usage\n");
     printf("==============================\n");
-    printf("heap size       : %12d (%s)\n", heap_size, print_unit(heap_size));
-    printf("freed free size : %12d (%s)\n", free_size, print_unit(free_size));
-    printf("free list size  : %12d (%s)\n", flist_free_size, print_unit(flist_free_size));
-    printf("    (last free) : %12d (%s)\n", lfree_size, print_unit(lfree_size));    
-    printf("small free size : %12d (%s)\n", small_free_size, print_unit(small_free_size));
-    printf("bottom size     : %12d (%s)\n", bottom_size, print_unit(bottom_size));
+    printf("heap size       : %12ld (%s)\n", heap_size, print_unit(heap_size));
+    printf("freed free size : %12ld (%s)\n", free_size, print_unit(free_size));
+    printf("free list size  : %12ld (%s)\n", flist_free_size, print_unit(flist_free_size));
+    printf("    (last free) : %12ld (%s)\n", lfree_size, print_unit(lfree_size));    
+    printf("small free size : %12ld (%s)\n", small_free_size, print_unit(small_free_size));
+    printf("bottom size     : %12ld (%s)\n", bottom_size, print_unit(bottom_size));
     printf("\n");
-    printf("used size       : %12d (%s)\n", used_size, print_unit(used_size));
-    printf("free size       : %12d (%s)\n", used_size, print_unit(free_size));    
+    printf("used size       : %12ld (%s)\n", used_size, print_unit(used_size));
+    printf("free size       : %12ld (%s)\n", used_size, print_unit(free_size));    
     printf("\n");
-}
-
-// SHOULD NOT BE USED.
-/*****************************************************************************
- * 
- * get_value_by_symbol
- *
- * Get value of symbol of original process.
- *****************************************************************************/
-uintptr_t
-get_value_by_symbol(char *symname)
-{
-    size_t free_size = 0;
-    uintptr_t *sym = NULL;
-    uintptr_t mapaddr;
-
-    mapaddr = get_core_mapaddr_by_symname(symname);
-    if(debug)    
-        printf("get_symbol_value: symname=\"%s\" mapaddr=0x%p\n",
-               symname, mapaddr);
-    sym = (uintptr_t *) mapaddr;
-    if(debug)
-        printf("get_symbol_value: value of \"%s\"=0x%p\n",
-               symname, *sym);
-
-    if(sym == NULL){
-        printf("get_symbol_value: can't get address of \"%s\"\n",
-               symname);
-        exit(1);
-    }
-    return *sym;
 }
 
 /*****************************************************************************
@@ -424,7 +235,7 @@ get_free_tree_size ()
 
     root_addr = get_pointer_value_by_symbol("Root");
     if (debug) {
-        printf("get_free_tree_size: Root TREE address = 0x%p\n", root_addr);
+        printf("get_free_tree_size: Root TREE address = 0x%lx\n", root_addr);
     }
 
     if (root_addr) {
@@ -437,7 +248,7 @@ get_free_tree_size ()
 
     if (verbose) {
         printf("free tree nodes: %12d\n", free_tree_nodes);
-        printf("free tree size : %12d\n", free_size);
+        printf("free tree size : %12ld\n", free_size);
         printf("\n");
     }
     
@@ -472,7 +283,7 @@ count_free(TREE *tp)
         if (Pr->ops->p_pread(Pr, &tree, sizeof(uintptr_t), left) < 0){
             printf("count_free: cannot read left tree\n");        
         }
-        if (debug) printf("count_free: LEFT(tp)=0x%p\n",left);
+        if (debug) printf("count_free: LEFT(tp)=0x%lx\n",left);
         /* Add left side total Call recursively */
         free_size += count_free((TREE *)&tree);
     } else {
@@ -486,7 +297,7 @@ count_free(TREE *tp)
             printf("count_free: cannot read right tree\n");        
         }        
         if(debug) {
-            printf("count_free: LEFT(tp)=0x%p\n", right);
+            printf("count_free: LEFT(tp)=0x%lx\n", right);
         }
         /* Add right side total. Call recursively */        
         free_size += count_free((TREE *)&tree);
@@ -496,100 +307,6 @@ count_free(TREE *tp)
     if(debug){ printf("count_free: free_size = %d\n", free_size); }
     
     return free_size;
-}
-
-/*****************************************************************************
- * get_diff_by_vaddr
- *
- * Calculate difference between process vaddr and core file offset of
- * heap area.
- *
- *****************************************************************************/
-offset_t
-get_diff_by_vaddr(uintptr_t vaddr)
-{
-    if(debug)
-        printf("get_diff_by_vaddr: vaddr=0x%p\n", vaddr);    //here
-    map_info_t *mptr;
-    prmap_t *pmap;
-    offset_t diff = 0;
-    const pstatus_t *Psp;    
-    int i;
-        
-    mptr = Pr->mappings;    
-    pmap = &mptr->map_pmap;
-
-    /*
-     * Loop map list for a map which include this vaddr
-     */
-    for (i = 0, mptr = Pr->mappings; i < Pr->map_count; i++, mptr++) {
-        prmap_t *pmap;
-        uintptr_t pr_vaddr;
-        size_t pr_size;
-        offset_t map_offset = mptr->map_offset;
-
-        Psp = Pstatus(Pr);        
-        pmap  = &mptr->map_pmap;
-        pr_vaddr = pmap->pr_vaddr;
-        pr_size  = pmap->pr_size;
-
-        if ( pr_vaddr <= vaddr && pr_vaddr + pr_size > vaddr){
-            diff =pr_vaddr - map_offset;
-            if(debug)
-                printf("get_diff_by_vaddr: found map for vaddr(0x%p). diff=%u(0x%lx)\n",
-                       vaddr, diff);
-            return diff;                
-        }
-    }
-    printf("get_diff_by_vaddr: Can't find map for vaddr=0x%p\n", vaddr);
-    exit(1);
-}
-
-/*****************************************************************************
- * get_diff_by_offset
- *
- * Calculate difference between process vaddr and core file offset of
- * heap area.
- *
- *****************************************************************************/
-offset_t
-get_diff_by_offset(offset_t offset)
-{
-    map_info_t *mptr;
-    prmap_t *pmap;
-    offset_t diff = 0;
-    const pstatus_t *Psp;    
-    int i;
-        
-    mptr = Pr->mappings;    
-    pmap = &mptr->map_pmap;
-
-    /*
-     * Check first map to see the differences 
-     * bettween vaddr and file offset
-     * This result would be used later calculation.
-     */
-    for (i = 0, mptr = Pr->mappings; i < Pr->map_count; i++, mptr++) {
-        prmap_t *pmap;
-        uintptr_t pr_vaddr;
-        size_t pr_size;
-        offset_t map_offset = mptr->map_offset;        
-
-        Psp = Pstatus(Pr);        
-        pmap  = &mptr->map_pmap;
-        pr_vaddr = pmap->pr_vaddr;
-        pr_size  = pmap->pr_size;
-
-        if ( map_offset <= offset && map_offset + pr_size > offset){
-            diff =pr_vaddr - map_offset;            
-            if(debug){
-                printf("get_diff_by_offset: offset=lu(0xlx), diff=%u(0x%lx)\n",
-                       offset, offset, diff, diff);
-            }
-            break;
-        }
-    }
-    return diff;    
 }
 
 /*****************************************************************************
@@ -603,7 +320,7 @@ find_heap()
 {
     const pstatus_t *Psp;
     map_info_t *mptr;
-    int i;
+    unsigned int i;
 
     Psp = Pstatus(Pr);            
 
@@ -624,10 +341,11 @@ find_heap()
         size  = pmap->pr_size;
         offset = mptr->map_offset;
         if(verbose)
-            printf("vaddr=0x%p, file offset=0x%p, size=%lu, diff=%0x%lx ",
-                   vaddr, offset, size, get_diff_by_vaddr(vaddr));
+            printf("vaddr=0x%lx, file offset=0x%llx, size=%ld",
+                   vaddr, offset, size);
         if(pmap->pr_mflags & MA_ANON ){
-            if (vaddr + size > Psp->pr_brkbase && vaddr < Psp->pr_brkbase + Psp->pr_brksize){
+            if (vaddr + size > Psp->pr_brkbase
+                && vaddr < Psp->pr_brkbase + Psp->pr_brksize) {
                 if(verbose)
                     printf ("[ heap ]");
                 heap_mptr = mptr;
@@ -658,7 +376,6 @@ get_lfree_size ()
     size_t lfree_size = 0;    
     uintptr_t lfree_addr = 0;
     TREE tree;
-    uintptr_t mapaddr;
     uintptr_t tree_addr;
 
     if(verbose){
@@ -669,7 +386,7 @@ get_lfree_size ()
     }
 
     lfree_addr = get_pointer_value_by_symbol("Lfree");
-    if (debug) printf("get_lfree_size: Lfree = 0x%p\n", lfree_addr);        
+    if (debug) printf("get_lfree_size: Lfree = 0x%lx\n", lfree_addr);
 
     if (lfree_addr) {
         tree_addr = (uintptr_t) BLOCK(lfree_addr);
@@ -677,11 +394,11 @@ get_lfree_size ()
             printf("count_free: cannot read last free'ed tree\n");        
         }
         lfree_size =  SIZE(&tree);
-        if(debug) printf("get_lfree_size: lfree_size = %d\n", lfree_size);        
+        if(debug) printf("get_lfree_size: lfree_size = %ld\n", lfree_size);        
     }    
 
     if(verbose){
-        printf("Lfree size: %d\n", lfree_size);        
+        printf("Lfree size: %ld\n", lfree_size);        
         printf("\n");
     }
 
@@ -704,12 +421,7 @@ get_flist_free_size()
     uintptr_t data_addr;
     uintptr_t tree_addr;
     size_t size;
-    char *m_data;
     int i;    
-    
-    char **flp;
-    TREE *tp;
-    int cnt = 0;
 
     if(verbose){
         printf("==============================\n");
@@ -750,7 +462,7 @@ get_flist_free_size()
         data_addr = flist[i];
         if (0 == data_addr) {
             if(verbose)
-                printf("flist[%02d](0x%p): empty\n", i, data_addr);
+                printf("flist[%02d](0x%lx): empty\n", i, data_addr);
             continue;
         }
         tree_addr = (uintptr_t) BLOCK(data_addr);            
@@ -761,15 +473,15 @@ get_flist_free_size()
         size = SIZE(&tree);
         free_size += size;
         if (verbose) {
-            printf("flist[%02d](0x%p): ISBIT(0)=%d, ISBIT(1)=%d, size=%d \n",
+            printf("flist[%02d](0x%lx): ISBIT(0)=%ld, ISBIT(1)=%ld, size=%ld \n",
                    i, data_addr, ISBIT0(size), ISBIT1(size), size);
         }
     }
 
     if(verbose){
         printf("FREESIZE       : %6d (# of slot)\n", FREESIZE);
-        printf("freeidx        : %6d \n", freeidx);
-        printf("next free size : %6d (%s)\n", free_size, print_unit(free_size));
+        printf("freeidx        : %6ld \n", freeidx);
+        printf("next free size : %6ld (%s)\n", free_size, print_unit(free_size));
         printf("\n");
     }
     free(flist);
@@ -801,16 +513,15 @@ size_t
 get_small_free_size()
 {
     size_t free_size = 0;
-    size_t size;
     uintptr_t list_base_addr; // address of 'List' 
     size_t list_size = MINSIZE/WORDSIZE-1;
-    int i;
+    unsigned int i;
     TREE tree;
 
     if(verbose){
         printf("==============================\n");
         printf("small list info\n");
-        printf("free list for less than %d bytes\n", MINSIZE);
+        printf("free list for less than %ld bytes\n", MINSIZE);
         printf("==============================\n");
     }
 
@@ -836,8 +547,8 @@ get_small_free_size()
         }        
         
         if (verbose){
-            printf("## list[%d] (0x%p) (for less than %d bytes)\n", i, 
-                   tree_addr, (i + 1) * WORDSIZE, nodes, node_total);
+            printf("## list[%d] (0x%lx) (for less than %ld bytes)\n", i, 
+                   tree_addr, (i + 1) * WORDSIZE);
         }
         
         while (tree_addr) {
@@ -848,7 +559,7 @@ get_small_free_size()
             size = SIZE(&tree);
             node_total += size;
             if (verbose){
-                printf("list[%d]-node#%02d (0x%p): size=%d\n", i, nodes,
+                printf("list[%d]-node#%02d (0x%lx): size=%ld\n", i, nodes,
                        tree_addr, size);
             }
             nodes++;            
@@ -856,14 +567,14 @@ get_small_free_size()
         }
         
         if (verbose) {
-            printf("list[%d]: nodes=%d, total size=%d (%s)\n", i, nodes,
+            printf("list[%d]: nodes=%d, total size=%ld (%s)\n", i, nodes,
                    node_total, print_unit(node_total));
             printf("\n");
         }        
         free_size += node_total;
     }
     if (verbose) {
-        printf("small free size: %d\n", free_size);
+        printf("small free size: %ld\n", free_size);
         printf("\n");
     }
     return free_size;
@@ -879,7 +590,6 @@ get_bottom_size()
 {
     size_t free_size = 0;
     uintptr_t bottom_addr;    
-    uintptr_t mapaddr;
     TREE tree;
 
     if(verbose){
@@ -890,7 +600,7 @@ get_bottom_size()
     }
     bottom_addr = get_pointer_value_by_symbol("Bottom");
     if(debug){
-        printf("get_bottom_size: Bottom address = 0x%p\n", bottom_addr);
+        printf("get_bottom_size: Bottom address = 0x%lx\n", bottom_addr);
     }
 
     if (bottom_addr) {
@@ -902,7 +612,7 @@ get_bottom_size()
     }    
 
     if(verbose){
-        printf("free size: %12d\n", free_size);
+        printf("free size: %12ld\n", free_size);
         printf("\n");
     }
     return free_size;
@@ -919,11 +629,10 @@ print_unit(size_t size)
     else if(size > 1024)
         snprintf(size_strings, SIZE_STRING_LEN, "%.1f KB", ((float)size / 1024));
     else
-        snprintf(size_strings, SIZE_STRING_LEN, "%d B", size);
+        snprintf(size_strings, SIZE_STRING_LEN, "%ld B", size);
     return size_strings;
 }
 
-//USED
 /*****************************************************************************
  * get_vaddr_by_symbol
  *
@@ -933,7 +642,6 @@ uintptr_t
 get_vaddr_by_symbol(char *symname)
 {
     GElf_Sym sym;
-    offset_t offset;
 
     /*
      * NOTE: If I use PR_OBJ_EVERY, Lfree is resolved in libproc...
@@ -947,13 +655,12 @@ get_vaddr_by_symbol(char *symname)
         exit(1);
     }
     if (debug){
-        printf("get_vaddr_by_symbol: Address of %s is 0x%p\n", symname, sym.st_value);
+        printf("get_vaddr_by_symbol: Address of %s is 0x%lx\n", symname, sym.st_value);
     }
 
     return sym.st_value;
 }
 
-//USED
 /*****************************************************************************
  * get_pointer_value_by_symbol
  *
