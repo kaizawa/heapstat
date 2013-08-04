@@ -66,7 +66,9 @@ int is_core = 1;
 Ehdr *ehdr; /* ELF Header of core file */
 map_info_t *heap_mptr; /* mapinfo for heap */
 static TREE *List[MINSIZE/WORDSIZE-1]; /* lists of small blocks */
+char size_strings[SIZE_STRING_LEN]; /* buffer for show size strings */
 static int free_tree_nodes = 0;
+
 
 int
 main (int argc, char *argv[])
@@ -144,7 +146,7 @@ main (int argc, char *argv[])
                        argv[0], path, Pgrab_error(gcode));
         exit(1);
     }
-    /*
+
     if(verbose){
         char *p;
         p = (char *) ehdr;
@@ -156,7 +158,9 @@ main (int argc, char *argv[])
         printf("WORDSIZE: %d\n", WORDSIZE);
         printf("MINSIZE/WORDSIZE-1: %d\n", MINSIZE/WORDSIZE-1);
         printf("CORESIZE: %d\n", CORESIZE);
-        printf("\n");                
+        printf("NPS: %d\n", WORDSIZE*8);        
+        printf("\n");
+    /*        
         printf("==============================\n");
         printf("ELF header\n");
         printf("==============================\n");            
@@ -174,8 +178,8 @@ main (int argc, char *argv[])
             printf("0x%.2x ", p[i]);
         }
         printf("\n\n");
-    }
     */
+    }
 
     Psp = Pstatus(Pr);
     /*
@@ -342,40 +346,35 @@ void
 report_heap_usage()
 {
     const pstatus_t *Psp;
-    Psp = Pstatus(Pr);    
-    size_t free_size = get_free_size();
+    Psp = Pstatus(Pr);
 
+    // TODO: to make get_free_size to work. 
+    size_t free_tree_size = get_free_tree_size();
     size_t heap_size = Psp->pr_brksize;
-
-    // TODO: to make get_lfree_size to work. Compare with previous tool
     size_t lfree_size = get_lfree_size();
-    /*        
     size_t flist_free_size = get_flist_free_size();
     size_t small_free_size = get_small_free_size();
     size_t bottom_size = get_bottom_size();
-    size_t used_size = heap_size - free_size - lfree_size - flist_free_size - small_free_size - bottom_size;
-    */    
-    
-    char size_strings[SIZE_STRING_LEN]; /* buffer for show size strings */
+    size_t free_size = free_tree_size - flist_free_size - small_free_size - bottom_size;
+    size_t used_size = heap_size - free_size;
 
     printf("==============================\n");
     printf("Heap Usage\n");
     printf("==============================\n");
-    printf("heap size       : %12d (%s)\n", heap_size, print_unit(heap_size, size_strings));
-    printf("freed free size : %12d (%s)\n", free_size, print_unit(free_size, size_strings));
-    printf("Last free size  : %12d (%s)\n", lfree_size, print_unit(lfree_size, size_strings));
-    /*    
-    printf("free list size  : %12d (%s)\n", flist_free_size, print_unit(flist_free_size, size_strings));
-    printf("small size      : %12d (%s)\n", small_free_size, print_unit(small_free_size, size_strings));
-    printf("bottom size     : %12d (%s)\n", bottom_size, print_unit(bottom_size, size_strings));
+    printf("heap size       : %12d (%s)\n", heap_size, print_unit(heap_size));
+    printf("freed free size : %12d (%s)\n", free_size, print_unit(free_size));
+    printf("free list size  : %12d (%s)\n", flist_free_size, print_unit(flist_free_size));
+    printf("    (last free) : %12d (%s)\n", lfree_size, print_unit(lfree_size));    
+    printf("small free size : %12d (%s)\n", small_free_size, print_unit(small_free_size));
+    printf("bottom size     : %12d (%s)\n", bottom_size, print_unit(bottom_size));
     printf("\n");
-    printf("used size       : %12d (%s)\n", used_size, print_unit(used_size, size_strings));
-    */
+    printf("used size       : %12d (%s)\n", used_size, print_unit(used_size));
+    printf("free size       : %12d (%s)\n", used_size, print_unit(free_size));    
     printf("\n");
 }
 
+// SHOULD NOT BE USED.
 /*****************************************************************************
- * SHOULD NOT BE USED.
  * 
  * get_value_by_symbol
  *
@@ -406,39 +405,39 @@ get_value_by_symbol(char *symname)
 }
 
 /*****************************************************************************
- * get_free_size
+ * get_free_tree_size
  *
- * get free memory size within heap area.
+ * get free memory size under Root free tree
  *****************************************************************************/
 size_t
-get_free_size ()
+get_free_tree_size ()
 {
     size_t free_size = 0;
     uintptr_t root_addr = 0;    
     TREE tree; // Root address
 
-    if(verbose){
+    if (verbose) {
         printf("==============================\n");
         printf("free tree info\n");
         printf("==============================\n");
     }
 
-    if((root_addr = get_vaddr_by_symbol("Root")) == 0) {
-        printf("get_free_size: cannot read Root tree address\n");
+    root_addr = get_pointer_value_by_symbol("Root");
+    if (debug) {
+        printf("get_free_tree_size: Root TREE address = 0x%p\n", root_addr);
     }
-    if (debug){
-        printf("get_free_size: Root TREE address = 0x%x\n", root_addr);
+
+    if (root_addr) {
+        if (Pr->ops->p_pread(Pr, &tree, sizeof(TREE), root_addr) < 0){
+            printf("get_free_tree_size: cannot read Root tree\n");
+            exit(1);
+        }
+        free_size = count_free(&tree);
     }    
 
-    if (Pr->ops->p_pread(Pr, &tree, sizeof(TREE), root_addr) < 0){
-        printf("get_free_size: cannot read Root tree\n");        
-    }
-    
-    free_size = count_free(&tree);
-
-    if(verbose){
+    if (verbose) {
         printf("free tree nodes: %12d\n", free_tree_nodes);
-        printf("free       size: %12d\n", free_size);
+        printf("free tree size : %12d\n", free_size);
         printf("\n");
     }
     
@@ -494,7 +493,7 @@ count_free(TREE *tp)
     } else {
         if (debug) { printf("count_free: Right is null\n"); }
     }
-    if(debug){ printf("count_free: free_size=%d", free_size); }
+    if(debug){ printf("count_free: free_size = %d\n", free_size); }
     
     return free_size;
 }
@@ -657,7 +656,7 @@ size_t
 get_lfree_size ()
 {
     size_t lfree_size = 0;    
-    uintptr_t lfree_addr;
+    uintptr_t lfree_addr = 0;
     TREE tree;
     uintptr_t mapaddr;
     uintptr_t tree_addr;
@@ -669,17 +668,17 @@ get_lfree_size ()
         printf("==============================\n");
     }
 
-    if((lfree_addr = get_vaddr_by_symbol("Lfree")) == 0) {
-        printf("get_lfree_size: cannot read last free'ed data address\n");
-    }    
+    lfree_addr = get_pointer_value_by_symbol("Lfree");
+    if (debug) printf("get_lfree_size: Lfree = 0x%p\n", lfree_addr);        
 
-    tree_addr = (uintptr_t) BLOCK(lfree_addr);
-    if (Pr->ops->p_pread(Pr, &tree, sizeof(TREE), tree_addr) < 0){
-        printf("count_free: cannot read last free'ed tree\n");        
+    if (lfree_addr) {
+        tree_addr = (uintptr_t) BLOCK(lfree_addr);
+        if (Pr->ops->p_pread(Pr, &tree, sizeof(TREE), tree_addr) < 0){
+            printf("count_free: cannot read last free'ed tree\n");        
+        }
+        lfree_size =  SIZE(&tree);
+        if(debug) printf("get_lfree_size: lfree_size = %d\n", lfree_size);        
     }    
-    lfree_size =  SIZE(&tree);
-    
-    if(debug) printf("get_lfree_size: lfree_size=%d\n", lfree_size);
 
     if(verbose){
         printf("Lfree size: %d\n", lfree_size);        
@@ -698,17 +697,19 @@ size_t
 get_flist_free_size()
 {
     size_t free_size = 0;
-    uintptr_t freeidx; /* index of free blocks in flist % FREESIZE */    
-//    char **flist; /* list of blocks to be freed on next malloc */
-    char **m_flist; /* list of blocks to be freed on next malloc */    
+    uintptr_t freeidx = 0; /* index of free blocks in flist % FREESIZE */
+    uintptr_t flist_addr = 0;
+    uintptr_t *flist; /* list of blocks to be freed on next malloc */
+    TREE tree;
+    uintptr_t data_addr;
+    uintptr_t tree_addr;
+    size_t size;
+    char *m_data;
+    int i;    
+    
     char **flp;
     TREE *tp;
     int cnt = 0;
-    size_t ts;
-    uintptr_t flist_addr;
-    char *data;
-    char *m_data;
-    int i;
 
     if(verbose){
         printf("==============================\n");
@@ -716,56 +717,84 @@ get_flist_free_size()
         printf("to be freed on next malloc\n");
         printf("==============================\n");
     }
+    flist = (void *) malloc(sizeof(uintptr_t) * FREESIZE);
+    if (NULL == flist) {
+        perror("malloc");
+        exit(1);
+    }
     
-    freeidx = get_value_by_symbol("freeidx");
-    m_flist = (char **) get_core_mapaddr_by_symname("flist");
-    if(flist_addr){
-        /*
-         * From malloc.c
-         * Last 2 bit of size field is used for special purpose.
-         *	BIT0:	1 for busy (block is in use), 0 for free.
-         *	BIT1:	if the block is busy, this bit is 1 if the
-         *		preceding block in contiguous memory is free.
-         *		Otherwise, it is always 0.
-         */
-        for (i = 0 ; i < FREESIZE ; i++ ) {
-            data = m_flist[i];
-            if(data == NULL){
-                if(verbose)
-                    printf("flist[%02d](0x%p): empty\n", i, data);
-                continue;
-            }
-            m_data = (char *)get_core_mapaddr_by_vaddr((uintptr_t)data);
-            tp = BLOCK(m_data);
-            ts = SIZE(tp);
-            free_size += ts;
-            if(verbose){
-                printf("flist[%02d](0x%p): ISBIT(0)=%d, ISBIT(1)=%d, size=%d \n",
-                       i, data, ISBIT0(ts), ISBIT1(ts), ts);
-            }
+    freeidx = get_pointer_value_by_symbol("freeidx");
+    flist_addr = get_vaddr_by_symbol("flist");
+
+    if (0 == flist_addr) {
+        /* we must be able to find address of flist */
+        printf("get_flist_free_size: cannot find flist address\n");
+        exit(1);     
+    }
+    
+    if (Pr->ops->p_pread(Pr, flist, sizeof(uintptr_t) * FREESIZE,
+                         flist_addr) < 0) {
+        printf("get_flist_free_size: cannot read flist\n");
+        exit(1);
+    }    
+    
+    /*
+     * From malloc.c
+     * Last 2 bit of size field is used for special purpose.
+     *	BIT0:	1 for busy (block is in use), 0 for free.
+     *	BIT1:	if the block is busy, this bit is 1 if the
+     *		preceding block in contiguous memory is free.
+     *		Otherwise, it is always 0.
+     */
+    for (i = 0 ; i < FREESIZE ; i++ ) {
+        data_addr = flist[i];
+        if (0 == data_addr) {
+            if(verbose)
+                printf("flist[%02d](0x%p): empty\n", i, data_addr);
+            continue;
         }
-    } else {
-        if(debug)
-            printf("get_flist_free_size: flist doesn't have value\n");
+        tree_addr = (uintptr_t) BLOCK(data_addr);            
+        if (Pr->ops->p_pread(Pr, &tree, sizeof(TREE), tree_addr) < 0){
+            printf("get_flist_free_size: cannot tree data\n");
+            exit(1);
+        }
+        size = SIZE(&tree);
+        free_size += size;
+        if (verbose) {
+            printf("flist[%02d](0x%p): ISBIT(0)=%d, ISBIT(1)=%d, size=%d \n",
+                   i, data_addr, ISBIT0(size), ISBIT1(size), size);
+        }
     }
 
     if(verbose){
-        printf("FREESIZE : %6d (# of slot)\n", FREESIZE);
-        printf("freeidx  : %6d \n", freeidx);
-        printf("free size: %6d \n", free_size);
+        printf("FREESIZE       : %6d (# of slot)\n", FREESIZE);
+        printf("freeidx        : %6d \n", freeidx);
+        printf("next free size : %6d (%s)\n", free_size, print_unit(free_size));
         printf("\n");
     }
+    free(flist);
     return free_size;    
 }
 
 /*****************************************************************************
  * get_small_free_size
  *
+ * Report total size of unused list of node for small size.
+ *
+ * If requested, _smalloc() in malloc.c always allocates 128 nodes for each
+ * List at a time regardless requested size. So the rest of nodes are reserved
+ * for later use.
+ *
  * MINSIZE: 80
  * WORDSIZE: 16 (in 64bit)
  * NPS = WORDSIZE * 8 = 148
  * List[MINSIZE/WORDSIZE-1] => List[4]
  *    Each list has (size + WORDSIZE) * NPS
+ *
+ * List[0] List of TREE for less than 16byte (# of node is 0-128)
+ * List[1] List of TREE for less than 32byte (# of node is 0-128)
+ * List[2] List of TREE for less than 48byte (# of node is 0-128)
+ * List[3] List of TREE for less than 64byte (# of node is 0-128)
  * 
  *****************************************************************************/
 size_t
@@ -773,52 +802,67 @@ get_small_free_size()
 {
     size_t free_size = 0;
     size_t size;
-    uintptr_t list_addr; // address of 'List' of original process
-    TREE **m_list; /* list of small blocks */
-    TREE *tp;
-    TREE *m_tp;
+    uintptr_t list_base_addr; // address of 'List' 
     size_t list_size = MINSIZE/WORDSIZE-1;
     int i;
+    TREE tree;
 
     if(verbose){
         printf("==============================\n");
         printf("small list info\n");
         printf("free list for less than %d bytes\n", MINSIZE);
         printf("==============================\n");
-    }    
+    }
 
-    m_list = (TREE **)get_core_mapaddr_by_symname("List");
+    list_base_addr = get_vaddr_by_symbol("List");
+    if (NULL == list_base_addr) {
+            printf("get_small_free_size: cannot get List address\n");
+            exit(1);
+    }
 
-    for (i = 0 ; i < list_size ; i ++){
+    for (i = 0 ; i < list_size ; i ++) {
         size_t node_total = 0;
         size_t size = 0;
         int nodes = 0;
-        
-        tp = m_list[i];
+        uintptr_t tree_addr;
+        uintptr_t list_addr;
 
+        /* list_addr poins unused list of small node */
+        list_addr = list_base_addr + sizeof(uintptr_t) * i;
+        
+        if (Pr->ops->p_pread(Pr, &tree_addr, sizeof(uintptr_t), list_addr) < 0) {
+                printf("get_small_free_size: cannot get tree address\n");
+                exit(1);
+        }        
+        
         if (verbose){
-            printf("## list[%d] (for less than %d bytes)\n", i, (i + 1) * WORDSIZE, nodes, node_total);
+            printf("## list[%d] (0x%p) (for less than %d bytes)\n", i, 
+                   tree_addr, (i + 1) * WORDSIZE, nodes, node_total);
         }
         
-        while(tp){
-            nodes++;            
-            if(debug)
-                printf("get_small_fee_size: tp=0x%p\n",m_tp);
-            m_tp = (TREE *)get_core_mapaddr_by_vaddr((uintptr_t)tp);
-            size = SIZE(m_tp);
+        while (tree_addr) {
+            if (Pr->ops->p_pread(Pr, &tree, sizeof(TREE), tree_addr) < 0) {
+                printf("get_small_free_size: cannot read tree data\n");
+                exit(1);
+            }    
+            size = SIZE(&tree);
             node_total += size;
             if (verbose){
-                printf("list[%d]-node#%02d (0x%p): size=%d\n", i, nodes, tp, size);
+                printf("list[%d]-node#%02d (0x%p): size=%d\n", i, nodes,
+                       tree_addr, size);
             }
-            tp = AFTER(m_tp);
+            nodes++;            
+            tree_addr = (uintptr_t) AFTER(&tree);
         }
-        if (verbose){
-            printf("list[%d]: nodes=%d, total size=%d\n", i, nodes, node_total);
+        
+        if (verbose) {
+            printf("list[%d]: nodes=%d, total size=%d (%s)\n", i, nodes,
+                   node_total, print_unit(node_total));
             printf("\n");
         }        
         free_size += node_total;
     }
-    if (verbose){
+    if (verbose) {
         printf("small free size: %d\n", free_size);
         printf("\n");
     }
@@ -836,22 +880,26 @@ get_bottom_size()
     size_t free_size = 0;
     uintptr_t bottom_addr;    
     uintptr_t mapaddr;
-    TREE *m_bottom; // Root address of mapped AS.
+    TREE tree;
 
     if(verbose){
         printf("==============================\n");
         printf("bottom info\n");
         printf("last free chunk in this area\n");
         printf("==============================\n");
-    }    
-    bottom_addr = get_value_by_symbol("Bottom");
-    if(bottom_addr){
-        m_bottom = (TREE *)get_core_mapaddr_by_vaddr(bottom_addr);
-        free_size = count_free(m_bottom);
-    } else {
-        if(debug)
-            printf("get_bottom_size: Root doesn't have value\n");
     }
+    bottom_addr = get_pointer_value_by_symbol("Bottom");
+    if(debug){
+        printf("get_bottom_size: Bottom address = 0x%p\n", bottom_addr);
+    }
+
+    if (bottom_addr) {
+        if (Pr->ops->p_pread(Pr, &tree, sizeof(TREE), bottom_addr) < 0){
+            printf("get_free_size: cannot read Root tree\n");
+            exit(1);
+        }
+        free_size = count_free(&tree);
+    }    
 
     if(verbose){
         printf("free size: %12d\n", free_size);
@@ -859,30 +907,27 @@ get_bottom_size()
     }
     return free_size;
 }
-/*
-void
-list_blocks()
-{
-*/  
     
 char *
-print_unit(size_t size, char *buffer)
+print_unit(size_t size)
 {
+    memset(size_strings, 0x0, SIZE_STRING_LEN);
     if(size > 1024 * 1024 * 1024)
-        snprintf(buffer, SIZE_STRING_LEN, "%d GB", (size / (1024 * 1024 * 1024)));
+        snprintf(size_strings, SIZE_STRING_LEN, "%.1f GB", ((float)size / (1024 * 1024 * 1024)));
     else if(size > 1024 * 1024)
-        snprintf(buffer, SIZE_STRING_LEN, "%d MB", (size / (1024 * 1024)));
+        snprintf(size_strings, SIZE_STRING_LEN, "%.1f MB", ((float)size / (1024 * 1024)));
     else if(size > 1024)
-        snprintf(buffer, SIZE_STRING_LEN, "%d KB", (size / 1024));
+        snprintf(size_strings, SIZE_STRING_LEN, "%.1f KB", ((float)size / 1024));
     else
-        snprintf(buffer, SIZE_STRING_LEN, "%d B", size);
-    return buffer;
+        snprintf(size_strings, SIZE_STRING_LEN, "%d B", size);
+    return size_strings;
 }
 
+//USED
 /*****************************************************************************
  * get_vaddr_by_symbol
  *
- * Get virtual address of symbol of original process.
+ * Get virtual address of symbol
  *****************************************************************************/
 uintptr_t
 get_vaddr_by_symbol(char *symname)
@@ -902,8 +947,30 @@ get_vaddr_by_symbol(char *symname)
         exit(1);
     }
     if (debug){
-        printf("get_vaddr_by_symbol: Address of %s is 0x%x\n", symname, sym.st_value);
+        printf("get_vaddr_by_symbol: Address of %s is 0x%p\n", symname, sym.st_value);
     }
-    
+
     return sym.st_value;
+}
+
+//USED
+/*****************************************************************************
+ * get_pointer_value_by_symbol
+ *
+ * Get value of symbol as pointer
+ *****************************************************************************/
+uintptr_t
+get_pointer_value_by_symbol(char *symname)
+{
+    uintptr_t symaddr;
+    uintptr_t pointer;
+
+    symaddr = get_vaddr_by_symbol(symname);
+    
+    if (Pr->ops->p_pread(Pr, &pointer, sizeof(pointer), symaddr) < 0){
+        printf("get_pointer_value_by_symbol: cannot read pointer value by %s\n",
+               symname);
+        exit(1);
+    }
+    return pointer;
 }

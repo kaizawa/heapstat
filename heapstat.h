@@ -1,7 +1,7 @@
 #ifndef _NHEAPSOLARIS_H
 #define _NHEAPSOLARIS_H
 void print_usage(char *);
-size_t get_free_size ();
+size_t get_free_tree_size ();
 size_t get_lfree_size ();
 size_t get_flist_free_size();
 size_t get_small_free_size();
@@ -18,7 +18,8 @@ uintptr_t get_vaddr_by_symbol(char *);
 int count_free(TREE *);
 void report_heap_usage();
 uintptr_t get_value_by_symbol(char *);
-char *print_unit(size_t, char *);
+uintptr_t get_pointer_value_by_symbol(char *);
+char *print_unit(size_t);
 
 #if defined(_LP64)
 typedef Elf64_Ehdr Ehdr;
