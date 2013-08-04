@@ -11,7 +11,7 @@ TEMPFILES = *~ .*~ .\#* \#*\#
 all: $(PRODUCTS)
 
 leak: leak.c
-	${CC} $(CFLAGS) -o $@ leak.c
+	${CC} $(CFLAGS) -g -o $@ leak.c
 
 clean:
 	-rm -f $(PRODUCTS) $(TEMPFILES) 
