@@ -22,13 +22,8 @@ main(int argc, char *argv[])
     long buffer[1];
     off_t roff;
     size_t size;
-    char *ehdr;
-    int is_core = 1;
-    struct stat st;
-    off_t mmap_len;
     int gcode;
     int prg_gflags = PGRAB_RDONLY;
-    const pstatus_t *Psp;    
     
     if(argc < 3){
         printf("Usage: %s [core|pid] offset\n", argv[0]);
@@ -47,9 +42,8 @@ main(int argc, char *argv[])
     }
 
     size = Pr->ops->p_pread(Pr, buffer, sizeof(long), offset);
-    printf("ofset: 0x%x(%d), size: %d, data: %s\n",
-           offset, offset, size, buffer);    
-    
+    printf("ofset: 0x%lx(%ld), size: %ld, data: %s\n",
+           offset, offset, size, (char *)buffer);    
 
     /* Read data via /proc/pid/as file */
     /// open as file 
@@ -67,6 +61,7 @@ main(int argc, char *argv[])
     }
 
     size = read(fd, buffer, sizeof(long));
-    printf("ofset: 0x%x(%d), roff: 0x%x, size: %d, data: %s\n",
-           offset, offset, roff, size, buffer);
+    printf("ofset: 0x%lx(%ld), roff: 0x%lx, size: %ld, data: %s\n",
+           offset, offset, roff, size, (char *)buffer);
+    exit(0);
 }

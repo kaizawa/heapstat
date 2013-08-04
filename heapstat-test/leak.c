@@ -42,6 +42,7 @@ main(int argc, char *argv[])
     } else {
         run_once();
     }
+    exit(0);
 }
 
 
@@ -77,7 +78,6 @@ void
 run_once()
 {
 	int  i;
-	void *p;
 
 	for( i = 0 ; i < SMALL_COUNT ; i++){
 		salloc(i);

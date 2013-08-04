@@ -42,14 +42,14 @@ main(int argc, char *argv[])
     }
 
     ehdr = (char *)mmap(0, 0x7fffffffL, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
-    if( ehdr < 0) {
+    if( MAP_FAILED == ehdr) {
         perror("mmap error");
         return (-1);
     }
     
-    
     size = read(fd, buffer, sizeof(long));
 
-    printf("ofset: 0x%x(%d), roff: 0x%x, size: %d, data: %s\n",
-           offset, offset, roff, size, buffer);    
+    printf("ofset: 0x%lx(%ld), roff: 0x%lx, size: %ld, data: %s\n",
+           offset, offset, roff, size, (char *)buffer);
+    exit(0);
 }
