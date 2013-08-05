@@ -35,13 +35,6 @@
  * Useful link: 
  *  Self-Adjusting Binary Search Trees (which is used by libc malloc)
  *  http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.95.1380&rep=rep1&type=pdf
- *
- * Note: Terminorogy used in this source
- *  vaddr: virtual address of original process address space
- *  mapaddr: virtual address mmap'ed to core file.
- *  symname: symbol name where exist on original process image.
- *  offset: file offset of core file. 
- *          actuall mmapped addres would be mmap'ed addr + offset.
  */
 #include <fcntl.h>
 #include <libgen.h>
@@ -54,6 +47,7 @@
 #include <sys/types.h>
 #include <malloc.h>
 #include <sys/mman.h>
+#include <inttypes.h>
 #include "mallint.h"
 #include "Pcontrol.h"
 #include "heapstat.h"
@@ -80,7 +74,7 @@ main (int argc, char *argv[])
                 verbose = 1;
                 break;
             default:
-                break;
+                print_usage(argv[0]);                
         }
     }
 
@@ -160,20 +154,20 @@ print_process_info(struct ps_prochandle *pr)
     printf("==============================\n");
     printf("General info\n");
     printf("==============================\n");
-    printf("MINSIZE: %ld\n", MINSIZE);
-    printf("WORDSIZE: %ld\n", WORDSIZE);
-    printf("MINSIZE/WORDSIZE-1: %ld\n", MINSIZE/WORDSIZE-1);
+    printf("MINSIZE: %zu\n", MINSIZE);
+    printf("WORDSIZE: %zu\n", WORDSIZE);
+    printf("MINSIZE/WORDSIZE-1: %zu\n", MINSIZE/WORDSIZE-1);
     printf("CORESIZE: %d\n", CORESIZE);
-    printf("NPS: %ld\n", WORDSIZE*8);        
+    printf("NPS: %zu\n", WORDSIZE*8);        
     printf("\n");
 
     printf("==============================\n");
     printf("Process info\n");
     printf("==============================\n");        
-    printf("brkbase: 0x%lx\n",psp->pr_brkbase);
-    printf("brksize: %ld bytes (0x%lx)\n",
+    printf("brkbase: 0x%" PRIXPTR "\n",psp->pr_brkbase);
+    printf("brksize: %zu bytes (0x%" PRIxPTR ")\n",
            psp->pr_brksize, psp->pr_brksize);
-    printf("heap range: 0x%lx-0x%lx\n",
+    printf("heap range: 0x%" PRIxPTR "-0x%" PRIxPTR "\n",
            psp->pr_brkbase, psp->pr_brkbase + psp->pr_brksize);
     printf("\n");                        
 }
@@ -205,32 +199,32 @@ print_heap_usage(struct ps_prochandle *pr)
         printf("==============================\n");
         printf("Heap Usage\n");
         printf("==============================\n");
-        printf("heap size       : %12ld (%s)\n", heap_size, print_unit(heap_size));
-        printf("free tree size  : %12ld (%s)\n", free_tree_size, print_unit(free_tree_size));
-        printf("next free size  : %12ld (%s)\n", flist_free_size, print_unit(flist_free_size));
-        printf("    (last free) : %12ld (%s)\n", lfree_size, print_unit(lfree_size));    
-        printf("small free size : %12ld (%s)\n", small_free_size, print_unit(small_free_size));
-        printf("bottom size     : %12ld (%s)\n", bottom_size, print_unit(bottom_size));
+        printf("heap size       : %12zu (%s)\n", heap_size, print_unit(heap_size));
+        printf("free tree size  : %12zu (%s)\n", free_tree_size, print_unit(free_tree_size));
+        printf("next free size  : %12zu (%s)\n", flist_free_size, print_unit(flist_free_size));
+        printf("    (last free) : %12zu (%s)\n", lfree_size, print_unit(lfree_size));    
+        printf("small free size : %12zu (%s)\n", small_free_size, print_unit(small_free_size));
+        printf("bottom size     : %12zu (%s)\n", bottom_size, print_unit(bottom_size));
         printf("\n");
-        printf("used size       : %12ld (%s)\n", used_size, print_unit(used_size));
-        printf("free size       : %12ld (%s)\n", used_size, print_unit(free_size));
-        printf("free %%          : %12d (%d %%)\n", free_rate, free_rate);
+        printf("used size       : %12zu (%s)\n", used_size, print_unit(used_size));
+        printf("free size       : %12zu (%s)\n", used_size, print_unit(free_size));
+        printf("free%%          : %7d (%d %%)\n", free_rate, free_rate);
         printf("\n");
     } else {
         if(0 == count % 20) {
-            printf("%12s %12s %12s %12s %12s %12s %12s\n", 
+            printf("%12s %12s %12s %12s %12s %12s %7s\n", 
                    "free tree", "next free", "small free", "bottom size", "heap size",
-                   "free size", "free %");
-            printf("%12s %12s %12s %12s %12s %12s %12s\n",             
-                   "size", "size", "size", "", "", "", "");
+                   "free size", "free%");
+            printf("%12s %12s %12s %12s %12s %12s %7s\n",             
+                   "size(kb)", "size(kb)", "size(kb)", "(kd)", "(kb)", "(kb)", "(%)");
         }
-        printf("%12ld ", free_tree_size / 1024);
-        printf("%12ld ", flist_free_size / 1024);
-        printf("%12ld ", small_free_size / 1024);
-        printf("%12ld ", bottom_size / 1024);
-        printf("%12ld ", heap_size / 1024);        
-        printf("%12ld ", free_size / 1024);
-        printf("%12d ", free_rate);
+        printf("%12zu ", free_tree_size / 1024);
+        printf("%12zu ", flist_free_size / 1024);
+        printf("%12zu ", small_free_size / 1024);
+        printf("%12zu ", bottom_size / 1024);
+        printf("%12zu ", heap_size / 1024);        
+        printf("%12zu ", free_size / 1024);
+        printf("%7d ", free_rate);
         printf("\n");
     }
     count++;    
@@ -256,7 +250,7 @@ get_free_tree_size (struct ps_prochandle *pr)
 
     root_addr = get_pointer_value_by_symbol(pr, "Root");
     if (debug) {
-        printf("get_free_tree_size: Root TREE address = 0x%lx\n", root_addr);
+        printf("get_free_tree_size: Root TREE address = 0x%" PRIxPTR "\n", root_addr);
     }
 
     if (root_addr) {
@@ -269,7 +263,7 @@ get_free_tree_size (struct ps_prochandle *pr)
 
     if (verbose) {
         printf("free tree nodes: %12d\n", free_tree_nodes);
-        printf("free tree size : %12ld\n", free_size);
+        printf("free tree size : %12zu\n", free_size);
         printf("\n");
     }
     
@@ -297,35 +291,46 @@ count_free(struct ps_prochandle *pr, TREE *tp)
     int free_size = SIZE(tp); /* First add its own size */
     free_tree_nodes++; // thread unsafe
     TREE tree;
+    int nodenum = free_tree_nodes;
+
+    if(verbose){
+        printf("count_free: node#%d free_size = %d\n",
+               nodenum, free_size);
+    }    
     
     if(LEFT(tp)){
-        if (debug) { printf("count_free: Left exists\n"); }
-        uintptr_t left = (uintptr_t)LEFT(tp);
-        if (pr->ops->p_pread(pr, &tree, sizeof(uintptr_t), left) < 0){
+        uintptr_t left = (uintptr_t)LEFT(tp);        
+        if (debug) {
+            printf("count_free: node#%d LEFT = 0x%" PRIxPTR "\n",
+                   nodenum, left);
+        }        
+        if (pr->ops->p_pread(pr, &tree, sizeof(TREE), left) < 0){
             printf("count_free: cannot read left tree\n");        
         }
-        if (debug) printf("count_free: LEFT(tp)=0x%lx\n",left);
         /* Add left side total Call recursively */
         free_size += count_free(pr, (TREE *)&tree);
     } else {
-        if (debug) { printf("count_free: Left is null\n"); }        
+        if (debug) {
+            printf("count_free: node#%d Left is null\n", nodenum);
+        }        
     }
     
     if(RIGHT(tp)){
-        if (debug) { printf("count_free: Right exists\n"); }
-        uintptr_t right = (uintptr_t)RIGHT(tp);
-        if (pr->ops->p_pread(pr, &tree, sizeof(uintptr_t), right) < 0){
+        uintptr_t right = (uintptr_t)RIGHT(tp);        
+        if(debug) {
+            printf("count_free: node#%d RIGHT = 0x%" PRIxPTR "\n",
+                   nodenum, right);
+        }        
+        if (pr->ops->p_pread(pr, &tree, sizeof(TREE), right) < 0){
             printf("count_free: cannot read right tree\n");        
         }        
-        if(debug) {
-            printf("count_free: LEFT(tp)=0x%lx\n", right);
-        }
         /* Add right side total. Call recursively */        
         free_size += count_free(pr, (TREE *)&tree);
     } else {
-        if (debug) { printf("count_free: Right is null\n"); }
+        if (debug) {
+            printf("count_free: node#%d Right is null\n", nodenum);
+        }
     }
-    if(debug){ printf("count_free: free_size = %d\n", free_size); }
     
     return free_size;
 }
@@ -349,7 +354,7 @@ find_heap(struct ps_prochandle *pr)
         printf("==============================\n");
         printf("All MAPs\n");
         printf("==============================\n");
-        printf("map count: %ld\n", pr->map_count);
+        printf("map count: %zu\n", pr->map_count);
     }
     
     for (i = 0, mptr = pr->mappings; i < pr->map_count; i++, mptr++) {
@@ -363,7 +368,7 @@ find_heap(struct ps_prochandle *pr)
         size  = pmap->pr_size;
         offset = mptr->map_offset;
         if(verbose){
-            printf("vaddr=0x%lx, file offset=0x%llx, size=%ld",
+            printf("vaddr=0x%" PRIxPTR ", file offset=0x%llx, size=%zu",
                    vaddr, offset, size);
         }
         if (pmap->pr_mflags & MA_ANON ) {
@@ -406,7 +411,7 @@ get_lfree_size (struct ps_prochandle *pr)
     }
 
     lfree_addr = get_pointer_value_by_symbol(pr, "Lfree");
-    if (debug) printf("get_lfree_size: Lfree = 0x%lx\n", lfree_addr);
+    if (debug) printf("get_lfree_size: Lfree = 0x%" PRIxPTR "\n", lfree_addr);
 
     if (lfree_addr) {
         tree_addr = (uintptr_t) BLOCK(lfree_addr);
@@ -414,11 +419,11 @@ get_lfree_size (struct ps_prochandle *pr)
             printf("count_free: cannot read last free'ed tree\n");        
         }
         lfree_size =  SIZE(&tree);
-        if(debug) printf("get_lfree_size: lfree_size = %ld\n", lfree_size);        
+        if(debug) printf("get_lfree_size: lfree_size = %zu\n", lfree_size);        
     }    
 
     if(verbose){
-        printf("Lfree size: %ld\n", lfree_size);        
+        printf("Lfree size: %zu\n", lfree_size);        
         printf("\n");
     }
 
@@ -482,7 +487,7 @@ get_flist_free_size(struct ps_prochandle *pr)
         data_addr = flist[i];
         if (0 == data_addr) {
             if(verbose)
-                printf("flist[%02d](0x%lx): empty\n", i, data_addr);
+                printf("flist[%02d](0x%" PRIxPTR "): empty\n", i, data_addr);
             continue;
         }
         tree_addr = (uintptr_t) BLOCK(data_addr);            
@@ -493,15 +498,15 @@ get_flist_free_size(struct ps_prochandle *pr)
         size = SIZE(&tree);
         free_size += size;
         if (verbose) {
-            printf("flist[%02d](0x%lx): ISBIT(0)=%ld, ISBIT(1)=%ld, size=%ld \n",
+            printf("flist[%02d](0x%" PRIxPTR "): ISBIT(0)=%zu, ISBIT(1)=%zu, size=%zu \n",
                    i, data_addr, ISBIT0(size), ISBIT1(size), size);
         }
     }
 
     if(verbose){
         printf("FREESIZE       : %6d (# of slot)\n", FREESIZE);
-        printf("freeidx        : %6ld \n", freeidx);
-        printf("next free size : %6ld (%s)\n", free_size, print_unit(free_size));
+        printf("freeidx        : %6zu \n", freeidx);
+        printf("next free size : %6zu (%s)\n", free_size, print_unit(free_size));
         printf("\n");
     }
     free(flist);
@@ -541,7 +546,7 @@ get_small_free_size(struct ps_prochandle *pr)
     if(verbose){
         printf("==============================\n");
         printf("small list info\n");
-        printf("free list for less than %ld bytes\n", MINSIZE);
+        printf("free list for less than %zu bytes\n", MINSIZE);
         printf("==============================\n");
     }
 
@@ -567,7 +572,7 @@ get_small_free_size(struct ps_prochandle *pr)
         }        
         
         if (verbose){
-            printf("## list[%d] (0x%lx) (for less than %ld bytes)\n", i, 
+            printf("## list[%d] (0x%" PRIxPTR ") (for less than %zu bytes)\n", i, 
                    tree_addr, (i + 1) * WORDSIZE);
         }
         
@@ -579,7 +584,7 @@ get_small_free_size(struct ps_prochandle *pr)
             size = SIZE(&tree);
             node_total += size;
             if (verbose){
-                printf("list[%d]-node#%02d (0x%lx): size=%ld\n", i, nodes,
+                printf("list[%d]-node#%02d (0x%" PRIxPTR "): size=%zu\n", i, nodes,
                        tree_addr, size);
             }
             nodes++;            
@@ -587,14 +592,14 @@ get_small_free_size(struct ps_prochandle *pr)
         }
         
         if (verbose) {
-            printf("list[%d]: nodes=%d, total size=%ld (%s)\n", i, nodes,
+            printf("list[%d]: nodes=%d, total size=%zu (%s)\n", i, nodes,
                    node_total, print_unit(node_total));
             printf("\n");
         }        
         free_size += node_total;
     }
     if (verbose) {
-        printf("small free size: %ld\n", free_size);
+        printf("small free size: %zu\n", free_size);
         printf("\n");
     }
     return free_size;
@@ -620,7 +625,7 @@ get_bottom_size(struct ps_prochandle *pr)
     }
     bottom_addr = get_pointer_value_by_symbol(pr, "Bottom");
     if(debug){
-        printf("get_bottom_size: Bottom address = 0x%lx\n", bottom_addr);
+        printf("get_bottom_size: Bottom address = 0x%" PRIxPTR "\n", bottom_addr);
     }
 
     if (bottom_addr) {
@@ -632,7 +637,7 @@ get_bottom_size(struct ps_prochandle *pr)
     }    
 
     if(verbose){
-        printf("free size: %12ld\n", free_size);
+        printf("free size: %12zu\n", free_size);
         printf("\n");
     }
     return free_size;
@@ -649,7 +654,7 @@ print_unit(size_t size)
     else if(size > 1024)
         snprintf(size_strings, SIZE_STRING_LEN, "%.1f KB", ((float)size / 1024));
     else
-        snprintf(size_strings, SIZE_STRING_LEN, "%ld B", size);
+        snprintf(size_strings, SIZE_STRING_LEN, "%zu B", size);
     return size_strings;
 }
 
@@ -662,6 +667,7 @@ uintptr_t
 get_vaddr_by_symbol(struct ps_prochandle *pr, char *symname)
 {
     GElf_Sym sym;
+    uintptr_t pointer;
 
     /*
      * NOTE: If I use PR_OBJ_EVERY, Lfree is resolved in libproc...
@@ -674,11 +680,13 @@ get_vaddr_by_symbol(struct ps_prochandle *pr, char *symname)
         fprintf(stderr, "Cannot get map for symbol\n");
         exit(1);
     }
+    pointer = sym.st_value;
+    
     if (debug){
-        printf("get_vaddr_by_symbol: Address of %s is 0x%lx\n", symname, sym.st_value);
+        printf("get_vaddr_by_symbol: Address of %s is 0x%" PRIxPTR "\n",
+               symname, pointer);
     }
-
-    return sym.st_value;
+    return pointer;
 }
 
 /*****************************************************************************
@@ -691,10 +699,11 @@ get_pointer_value_by_symbol(struct ps_prochandle *pr, char *symname)
 {
     uintptr_t symaddr;
     uintptr_t pointer;
+    int addr_size = Pstatus(pr)->pr_dmodel == PR_MODEL_LP64 ? 8 : 4;
 
     symaddr = get_vaddr_by_symbol(pr, symname);
-    
-    if (pr->ops->p_pread(pr, &pointer, sizeof(pointer), symaddr) < 0){
+
+    if (pr->ops->p_pread(pr, &pointer, addr_size, symaddr) < 0){
         printf("get_pointer_value_by_symbol: cannot read pointer value by %s\n",
                symname);
         exit(1);

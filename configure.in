@@ -41,14 +41,14 @@ case $KARCH in
      'sparc' | 'i386')
 	;;
       'sparcv9')
-	CFLAGS="$CFLAGS -m64"
+	CFLAGS="$CFLAGS"
 	if test -n "$IS_GNU_LD";
 	then
 		LD_OPT="-melf64_sparc"
 	fi
 	;;
       'amd64')
-	CFLAGS="$CFLAGS -m64"
+	CFLAGS="$CFLAGS"
 	if test -n "$IS_GNU_LD";
 	then
 		LD_OPT="-melf_x86_64"
