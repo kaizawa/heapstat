@@ -15,6 +15,7 @@ main()
     memset(str, 'a', 4);
     printf("%p\n", str);
     gets(str);
+    exit(0);
 }
 
     
