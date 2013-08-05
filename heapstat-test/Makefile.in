@@ -4,14 +4,26 @@ DEFS = @DEFS@
 CFLAGS = -g -I. -I../inc $(DEFS) @CFLAGS@ 
 LD_FLAGS = @LD_OPT@
 LN = /usr/bin/ln
-PRODUCTS = leak plibtest astest small
+PRODUCTS = leak32 leak64 plibtest astest small
 INSTALL = @INSTALL@
 TEMPFILES = *~ .*~ .\#* \#*\#
 
 all: $(PRODUCTS)
 
-leak: leak.c
-	${CC} $(CFLAGS) -g -o $@ leak.c
+leak32: leak.c
+	${CC} $(CFLAGS) -m32 -g -o $@ leak.c
+
+leak64: leak.c
+	${CC} $(CFLAGS) -m64 -g -o $@ leak.c
+
+plibtest: plibtest.c
+	${CC} $(CFLAGS) -m64 -lproc -o $@ plibtest.c
+
+astest: astest.c
+	${CC} $(CFLAGS) -m64 -o $@ astest.c
+
+small: small.c
+	${CC} $(CFLAGS) -m64 -o $@ small.c
 
 clean:
 	-rm -f $(PRODUCTS) $(TEMPFILES) 
@@ -21,12 +33,3 @@ distclean:
 
 test:
 	echo "not implemented"
-
-plibtest: plibtest.c
-	${CC} $(CFLAGS) -lproc -o $@ plibtest.c
-
-astest: astest.c
-	${CC} $(CFLAGS) -o $@ astest.c
-
-small: small.c
-	${CC} $(CFLAGS) -o $@ small.c
