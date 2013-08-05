@@ -1,31 +1,40 @@
 What is heapstat
 =====================
 
-hpeapstat is a command to analyze and show process's heap space usage.
+heapstat is a command that reports usage of C-heap area of live process and core file.
 
 How To Use
 ======================
 
 run command with core file name as an argument
 
-Usage: heapstat [-d|-v] core_file
-   -d   : debug output
-   -v   : verbose output
+heapstat [-v] { pid | core } [interval]
 
 Example)
 
- $ heapstat /var/tmp/core.23305
- ==============================
- Heap Usage
- ==============================
- heap size       :    132972544 (126 MB)
- freed free size :            0 (0 B)
- Last free size  :           33 (33 B)
- free list size  :            0 (0 B)
- small size      :     52427776 (49 MB)
- bottom size     :     54119632 (51 MB)
- 
- used size       :     26425103 (25 MB)
+By giving pid as an argument, you can inspect the usage of C-heap area of live process.
+
+$ heapstat 14641    
+   free tree    next free   small free  bottom size    heap size    free size   free%
+    size(kb)     size(kb)     size(kb)         (kd)         (kb)         (kb)     (%)
+          16            0           17            3         6656           36       0 
+If you specify interval, heapstat periodically report usage in given interval in seconds.
+
+$ heapstat 14680 2
+   free tree    next free   small free  bottom size    heap size    free size   free%
+    size(kb)     size(kb)     size(kb)         (kd)         (kb)         (kb)     (%)
+         327            0           67            0         8192          395       4 
+         327            0           67            0         8192          395       4 
+         327            0           66          227         8192          621       7 
+         327            0           66          227         8192          621       7 
+         327            0           66          227         8192          621       7 
+         327            0           66          227         8192          621       7 
+If you give core file name as an argument, you can inspect usage of C-heap area included in core file.
+
+$ heapstat /var/tmp/core.974                                                                   
+   free tree    next free   small free  bottom size    heap size    free size   free%
+    size(kb)     size(kb)     size(kb)         (kd)         (kb)         (kb)     (%)
+           0            1        51199        52851       129856       104051      80 
  
 How To Compile
 ======================
@@ -37,3 +46,11 @@ If you want to copy it to /usr/local/bin, run
 make install command as super user.
 
  # make install
+
+License
+======================
+This program is provided under CDDL License.
+
+https://github.com/kaizawa/heapstat/wiki
+
+
