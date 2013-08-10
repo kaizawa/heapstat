@@ -2,6 +2,7 @@ What is heapstat
 =====================
 
 heapstat is a command that reports usage of C-heap area of live process and core file.
+This command is for Solaris(illumos) only.
 
 How To Use
 ======================
@@ -18,6 +19,7 @@ $ heapstat 14641
    free tree    next free   small free  bottom size    heap size    free size   free%
     size(kb)     size(kb)     size(kb)         (kd)         (kb)         (kb)     (%)
           16            0           17            3         6656           36       0 
+
 If you specify interval, heapstat periodically report usage in given interval in seconds.
 
 $ heapstat 14680 2
@@ -29,6 +31,7 @@ $ heapstat 14680 2
          327            0           66          227         8192          621       7 
          327            0           66          227         8192          621       7 
          327            0           66          227         8192          621       7 
+
 If you give core file name as an argument, you can inspect usage of C-heap area included in core file.
 
 $ heapstat /var/tmp/core.974                                                                   
@@ -52,5 +55,3 @@ License
 This program is provided under CDDL License.
 
 https://github.com/kaizawa/heapstat/wiki
-
-
