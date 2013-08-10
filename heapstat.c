@@ -163,7 +163,8 @@ print_process_info(struct ps_prochandle *pr)
 
     printf("==============================\n");
     printf("Process info\n");
-    printf("==============================\n");        
+    printf("==============================\n");
+    printf("pid    : %d\n",psp->pr_pid);
     printf("brkbase: 0x%" PRIXPTR "\n",psp->pr_brkbase);
     printf("brksize: %zu bytes (0x%" PRIxPTR ")\n",
            psp->pr_brksize, psp->pr_brksize);
@@ -208,7 +209,7 @@ print_heap_usage(struct ps_prochandle *pr)
         printf("\n");
         printf("used size       : %12zu (%s)\n", used_size, print_unit(used_size));
         printf("free size       : %12zu (%s)\n", used_size, print_unit(free_size));
-        printf("free%%          : %7d (%d %%)\n", free_rate, free_rate);
+        printf("free%%           :      %7d (%d %%)\n", free_rate, free_rate);
         printf("\n");
     } else {
         if(0 == count % 20) {
