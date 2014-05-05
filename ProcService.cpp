@@ -42,7 +42,8 @@ ProcService::print_process_info()
 
     printf("==============================\n");
     printf("Process info\n");
-    printf("==============================\n");        
+    printf("==============================\n");
+    printf("pid    : %d\n",psp->pr_pid);
     printf("brkbase: 0x%" PRIXPTR "\n",psp->pr_brkbase);
     printf("brksize: %zu bytes (0x%" PRIxPTR ")\n",
            psp->pr_brksize, psp->pr_brksize);
