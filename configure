@@ -3008,7 +3008,7 @@ fi
 MAJOR_VERSION=`uname -r | cut -f 1 -d .`
 MINOR_VERSION=`uname -r | cut -f 2 -d .`
 if test "$MAJOR_VERSION" -ge 5  -a "$MINOR_VERSION" -ge 11 ; then
-        CFLAGS="$CFLAGS -Iinc"
+        CFLAGS="$CFLAGS -Iinclude"
 else
         echo "Not supported version: $MAJOR_VERSION.$MINOR_VERSION"
         exit

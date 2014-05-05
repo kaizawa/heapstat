@@ -39,7 +39,7 @@ gtest-all:
 	cd gtest ; make
 
 heapstat_unittest: heapstat_unittest.cpp
-	$(CXX) -isystem $(GTEST_DIR)/include -pthread heapstat_unittest.cpp \
+	$(CXX) -isystem $(GTEST_DIR)/include;../inc -pthread heapstat_unittest.cpp \
 	$(GTEST_DIR)/src/gtest_main.cc $(GTEST_DIR)/libgtest.a  -o heapstat_unittest
 
 unittest: gtest-all heapstat_unittest
