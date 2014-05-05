@@ -1,12 +1,14 @@
 CONFIGURE_FILES = Makefile config.status config.cache config.h config.log autom4te.cache
 CC = @CC@
+CXX = @CXX@
 DEFS = @DEFS@
 CFLAGS = -g -I. -I../inc $(DEFS) @CFLAGS@ 
 LD_FLAGS = @LD_OPT@
 LN = /usr/bin/ln
-PRODUCTS = leak32 leak64 plibtest astest small
+PRODUCTS = leak32 leak64 plibtest astest small gtest-all
 INSTALL = @INSTALL@
-TEMPFILES = *~ .*~ .\#* \#*\#
+TEMPFILES = *~ .*~ .\#* \#*\# *.o
+GTEST_DIR = ./gtest
 
 all: $(PRODUCTS)
 
@@ -27,9 +29,15 @@ small: small.c
 
 clean:
 	-rm -f $(PRODUCTS) $(TEMPFILES) 
+	-cd gtest ; make clean
 
 distclean: 
 	-rm -fr $(CONFIGURE_FILES) $(TEMPFILES) 
+	-cd gtest ; make distclean
+
+gtest-all: all
+	cd gtest ; make
 
 test:
 	echo "not implemented"
+

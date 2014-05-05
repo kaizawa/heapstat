@@ -67,5 +67,5 @@ AC_SUBST(CC)
 AC_SUBST(CXX)
 AC_SUBST(PTHREAD_CFLAGS)
 
-AC_CONFIG_FILES([Makefile heapstat-test/Makefile])
+AC_CONFIG_FILES([Makefile heapstat-test/Makefile heapstat-test/gtest/Makefile])
 AC_OUTPUT

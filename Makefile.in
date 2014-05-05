@@ -29,9 +29,6 @@ xheapstat32: heapstat.c heapstat.h
 xheapstat64: heapstat.c heapstat.h
 	${CC} $(CFLAGS) -m64 -o $@ heapstat.c
 
-leak: 
-	cd heapstat-test ; make
-
 install: heapstat
 	$(INSTALL) -d -m 0755 -o root -g bin /usr/local/bin
 	-$(INSTALL) -m 0755 -o root -g bin heapstat /usr/local/bin
@@ -52,3 +49,6 @@ clean:
 distclean: 
 	-rm -fr $(CONFIGURE_FILES) $(TEMPFILES)
 	cd heapstat-test ; make distclean
+
+test:
+	cd heapstat-test ; make

@@ -3047,7 +3047,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile heapstat-test/Makefile"
+ac_config_files="$ac_config_files Makefile heapstat-test/Makefile heapstat-test/gtest/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -3769,6 +3769,7 @@ do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "heapstat-test/Makefile") CONFIG_FILES="$CONFIG_FILES heapstat-test/Makefile" ;;
+    "heapstat-test/gtest/Makefile") CONFIG_FILES="$CONFIG_FILES heapstat-test/gtest/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

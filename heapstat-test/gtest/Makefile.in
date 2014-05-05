@@ -1,0 +1,26 @@
+CONFIGURE_FILES = Makefile config.status config.cache config.h config.log autom4te.cache
+CC = @CC@
+CXX = @CXX@
+DEFS = @DEFS@
+CFLAGS = -g -I. -I../inc $(DEFS) @CFLAGS@ 
+LD_FLAGS = @LD_OPT@
+LN = /usr/bin/ln
+PRODUCTS = gtest-all
+INSTALL = @INSTALL@
+TEMPFILES = *~ .*~ .\#* \#*\# 
+GTEST_DIR = ./
+
+all: $(PRODUCTS)
+
+clean:
+	-rm -f $(PRODUCTS) $(TEMPFILES) 
+
+distclean: 
+	-rm -fr $(CONFIGURE_FILES) $(TEMPFILES) 
+
+gtest-all: $(GTEST_DIR)/src/gtest.cc $(GTEST_DIR)/src/gtest-death-test.cc \
+		$(GTEST_DIR)/src/gtest-filepath.cc $(GTEST_DIR)/src/gtest-port.cc \
+		$(GTEST_DIR)/src/gtest-printers.cc $(GTEST_DIR)/src/gtest-test-part.cc \
+		$(GTEST_DIR)/src/gtest-typed-test.cc
+	${CXX} -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) \
+		-pthread -c $(GTEST_DIR)/src/gtest-all.cc                                        

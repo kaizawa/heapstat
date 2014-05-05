@@ -1,0 +1,541 @@
+src/gtest-all.lo: src/gtest-all.cc include/gtest/gtest.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/limits \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/c++config.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/os_defines.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/cpu_defines.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ostream \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ios \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/iosfwd \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stringfwd.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/postypes.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cwchar \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cstddef \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/include/stddef.h \
+ /usr/include/wchar.h /usr/include/sys/feature_tests.h \
+ /usr/include/sys/ccompile.h /usr/include/sys/isa_defs.h \
+ /usr/include/iso/wchar_iso.h /usr/include/stdio_tag.h \
+ /usr/include/wchar_impl.h /usr/include/iso/time_iso.h \
+ /usr/include/stdio.h /usr/include/iso/stdio_iso.h \
+ /usr/include/sys/va_list.h /usr/include/stdio_impl.h \
+ /usr/include/iso/stdio_c99.h /usr/include/ctype.h \
+ /usr/include/iso/ctype_iso.h /usr/include/iso/ctype_c99.h \
+ /usr/include/iso/wchar_c99.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/exception \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/char_traits.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_algobase.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/functexcept.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/exception_defines.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/cpp_type_traits.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ext/type_traits.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ext/numeric_traits.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_pair.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/move.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/concept_check.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_iterator_base_types.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_iterator_base_funcs.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_iterator.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/debug/debug.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/localefwd.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/c++locale.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/clocale \
+ /usr/include/locale.h /usr/include/iso/locale_iso.h \
+ /usr/include/libintl.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cctype \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/ios_base.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ext/atomicity.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/gthr.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/gthr-default.h \
+ /usr/include/pthread.h /usr/include/sys/types.h \
+ /usr/include/sys/machtypes.h /usr/include/ia32/sys/machtypes.h \
+ /usr/include/sys/int_types.h /usr/include/sys/select.h \
+ /usr/include/sys/time_impl.h /usr/include/sys/time.h /usr/include/time.h \
+ /usr/include/sched.h /usr/include/unistd.h /usr/include/sys/unistd.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/atomic_word.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/locale_classes.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/string \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/allocator.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/c++allocator.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ext/new_allocator.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/new \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/ostream_insert.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cxxabi-forced.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_function.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/backward/binders.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/basic_string.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/initializer_list \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/basic_string.tcc \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/locale_classes.tcc \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/streambuf \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/streambuf.tcc \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/basic_ios.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/locale_facets.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cwctype \
+ /usr/include/wctype.h /usr/include/iso/wctype_iso.h \
+ /usr/include/iso/wctype_c99.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/ctype_base.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/streambuf_iterator.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/ctype_inline.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/locale_facets.tcc \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/basic_ios.tcc \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/ostream.tcc \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/vector \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_construct.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_uninitialized.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_vector.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_bvector.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/vector.tcc \
+ include/gtest/internal/gtest-internal.h \
+ include/gtest/internal/gtest-port.h /usr/include/stdlib.h \
+ /usr/include/iso/stdlib_iso.h /usr/include/iso/stdlib_c99.h \
+ /usr/include/sys/wait.h /usr/include/sys/resource.h \
+ /usr/include/sys/siginfo.h /usr/include/sys/machsig.h \
+ /usr/include/vm/faultcode.h /usr/include/sys/procset.h \
+ /usr/include/sys/signal.h /usr/include/sys/iso/signal_iso.h \
+ /usr/include/sys/ucontext.h /usr/include/sys/regset.h \
+ /usr/include/sys/privregs.h /usr/include/ia32/sys/privregs.h \
+ /usr/include/sys/controlregs.h /usr/include/string.h \
+ /usr/include/iso/string_iso.h /usr/include/sys/stat.h \
+ /usr/include/sys/stat_impl.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/iostream \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/istream \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/istream.tcc \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/sstream \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/sstream.tcc \
+ /usr/include/strings.h /usr/include/regex.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/typeinfo \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/tr1/tuple \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/utility \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_relops.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/stdexcept \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/include/float.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/iomanip \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/set \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_tree.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_set.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_multiset.h \
+ include/gtest/gtest-message.h include/gtest/internal/gtest-string.h \
+ include/gtest/internal/gtest-filepath.h \
+ include/gtest/internal/gtest-type-util.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cxxabi.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/cxxabi_tweaks.h \
+ include/gtest/gtest-death-test.h \
+ include/gtest/internal/gtest-death-test-internal.h \
+ include/gtest/gtest-param-test.h \
+ include/gtest/internal/gtest-param-util.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/iterator \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stream_iterator.h \
+ include/gtest/internal/gtest-linked_ptr.h /usr/include/assert.h \
+ include/gtest/gtest-printers.h \
+ include/gtest/internal/gtest-param-util-generated.h \
+ include/gtest/gtest_prod.h include/gtest/gtest-test-part.h \
+ include/gtest/gtest-typed-test.h include/gtest/gtest_pred_impl.h \
+ src/gtest.cc include/gtest/gtest-spi.h /usr/include/math.h \
+ /usr/include/iso/math_iso.h /usr/include/iso/math_c99.h \
+ /usr/include/floatingpoint.h /usr/include/sys/ieeefp.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/include/stdarg.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/algorithm \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_algo.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cstdlib \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/algorithmfwd.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_heap.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_tempbuf.h \
+ src/gtest-internal-inl.h /usr/include/errno.h /usr/include/sys/errno.h \
+ src/gtest-death-test.cc /usr/include/fcntl.h /usr/include/sys/fcntl.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/include-fixed/limits.h \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/iso/limits_iso.h \
+ /usr/include/sys/int_limits.h /usr/include/sys/mman.h \
+ src/gtest-filepath.cc \
+ /usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/climits \
+ src/gtest-port.cc src/gtest-printers.cc src/gtest-test-part.cc \
+ src/gtest-typed-test.cc
+
+include/gtest/gtest.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/limits:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/c++config.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/os_defines.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/cpu_defines.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ostream:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ios:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/iosfwd:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stringfwd.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/postypes.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cwchar:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cstddef:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/include/stddef.h:
+
+/usr/include/wchar.h:
+
+/usr/include/sys/feature_tests.h:
+
+/usr/include/sys/ccompile.h:
+
+/usr/include/sys/isa_defs.h:
+
+/usr/include/iso/wchar_iso.h:
+
+/usr/include/stdio_tag.h:
+
+/usr/include/wchar_impl.h:
+
+/usr/include/iso/time_iso.h:
+
+/usr/include/stdio.h:
+
+/usr/include/iso/stdio_iso.h:
+
+/usr/include/sys/va_list.h:
+
+/usr/include/stdio_impl.h:
+
+/usr/include/iso/stdio_c99.h:
+
+/usr/include/ctype.h:
+
+/usr/include/iso/ctype_iso.h:
+
+/usr/include/iso/ctype_c99.h:
+
+/usr/include/iso/wchar_c99.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/exception:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/char_traits.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_algobase.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/functexcept.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/exception_defines.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/cpp_type_traits.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ext/type_traits.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ext/numeric_traits.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_pair.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/move.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/concept_check.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_iterator_base_types.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_iterator_base_funcs.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_iterator.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/debug/debug.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/localefwd.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/c++locale.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/clocale:
+
+/usr/include/locale.h:
+
+/usr/include/iso/locale_iso.h:
+
+/usr/include/libintl.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cctype:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/ios_base.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ext/atomicity.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/gthr.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/gthr-default.h:
+
+/usr/include/pthread.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/sys/machtypes.h:
+
+/usr/include/ia32/sys/machtypes.h:
+
+/usr/include/sys/int_types.h:
+
+/usr/include/sys/select.h:
+
+/usr/include/sys/time_impl.h:
+
+/usr/include/sys/time.h:
+
+/usr/include/time.h:
+
+/usr/include/sched.h:
+
+/usr/include/unistd.h:
+
+/usr/include/sys/unistd.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/atomic_word.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/locale_classes.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/string:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/allocator.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/c++allocator.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/ext/new_allocator.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/new:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/ostream_insert.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cxxabi-forced.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_function.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/backward/binders.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/basic_string.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/initializer_list:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/basic_string.tcc:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/locale_classes.tcc:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/streambuf:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/streambuf.tcc:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/basic_ios.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/locale_facets.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cwctype:
+
+/usr/include/wctype.h:
+
+/usr/include/iso/wctype_iso.h:
+
+/usr/include/iso/wctype_c99.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/ctype_base.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/streambuf_iterator.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/ctype_inline.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/locale_facets.tcc:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/basic_ios.tcc:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/ostream.tcc:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/vector:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_construct.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_uninitialized.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_vector.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_bvector.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/vector.tcc:
+
+include/gtest/internal/gtest-internal.h:
+
+include/gtest/internal/gtest-port.h:
+
+/usr/include/stdlib.h:
+
+/usr/include/iso/stdlib_iso.h:
+
+/usr/include/iso/stdlib_c99.h:
+
+/usr/include/sys/wait.h:
+
+/usr/include/sys/resource.h:
+
+/usr/include/sys/siginfo.h:
+
+/usr/include/sys/machsig.h:
+
+/usr/include/vm/faultcode.h:
+
+/usr/include/sys/procset.h:
+
+/usr/include/sys/signal.h:
+
+/usr/include/sys/iso/signal_iso.h:
+
+/usr/include/sys/ucontext.h:
+
+/usr/include/sys/regset.h:
+
+/usr/include/sys/privregs.h:
+
+/usr/include/ia32/sys/privregs.h:
+
+/usr/include/sys/controlregs.h:
+
+/usr/include/string.h:
+
+/usr/include/iso/string_iso.h:
+
+/usr/include/sys/stat.h:
+
+/usr/include/sys/stat_impl.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/iostream:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/istream:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/istream.tcc:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/sstream:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/sstream.tcc:
+
+/usr/include/strings.h:
+
+/usr/include/regex.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/typeinfo:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/tr1/tuple:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/utility:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_relops.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/stdexcept:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/include/float.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/iomanip:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/set:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_tree.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_set.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_multiset.h:
+
+include/gtest/gtest-message.h:
+
+include/gtest/internal/gtest-string.h:
+
+include/gtest/internal/gtest-filepath.h:
+
+include/gtest/internal/gtest-type-util.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cxxabi.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/i386-pc-solaris2.11/bits/cxxabi_tweaks.h:
+
+include/gtest/gtest-death-test.h:
+
+include/gtest/internal/gtest-death-test-internal.h:
+
+include/gtest/gtest-param-test.h:
+
+include/gtest/internal/gtest-param-util.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/iterator:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stream_iterator.h:
+
+include/gtest/internal/gtest-linked_ptr.h:
+
+/usr/include/assert.h:
+
+include/gtest/gtest-printers.h:
+
+include/gtest/internal/gtest-param-util-generated.h:
+
+include/gtest/gtest_prod.h:
+
+include/gtest/gtest-test-part.h:
+
+include/gtest/gtest-typed-test.h:
+
+include/gtest/gtest_pred_impl.h:
+
+src/gtest.cc:
+
+include/gtest/gtest-spi.h:
+
+/usr/include/math.h:
+
+/usr/include/iso/math_iso.h:
+
+/usr/include/iso/math_c99.h:
+
+/usr/include/floatingpoint.h:
+
+/usr/include/sys/ieeefp.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/include/stdarg.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/algorithm:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_algo.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/cstdlib:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/algorithmfwd.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_heap.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/bits/stl_tempbuf.h:
+
+src/gtest-internal-inl.h:
+
+/usr/include/errno.h:
+
+/usr/include/sys/errno.h:
+
+src/gtest-death-test.cc:
+
+/usr/include/fcntl.h:
+
+/usr/include/sys/fcntl.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/include-fixed/limits.h:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/include-fixed/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/iso/limits_iso.h:
+
+/usr/include/sys/int_limits.h:
+
+/usr/include/sys/mman.h:
+
+src/gtest-filepath.cc:
+
+/usr/gcc/4.5/lib/gcc/i386-pc-solaris2.11/4.5.2/../../../../include/c++/4.5.2/climits:
+
+src/gtest-port.cc:
+
+src/gtest-printers.cc:
+
+src/gtest-test-part.cc:
+
+src/gtest-typed-test.cc:
