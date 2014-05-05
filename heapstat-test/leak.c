@@ -4,47 +4,50 @@
 #include <string.h>
 
 #define LARGE_CHUNK_SIZE 499 
-#define SMALL_CHUNK_SIZE 29 
+#define SMALL_CHUNK_SIZE 8 
 #define LARGE_COUNT 102400
 #define SMALL_COUNT 1638400
 
-void alloc(int);
-void free_all();
-void free_one(int);
-void salloc(int);
-void sfree_all();
-void sfree_one(int);
-void run_once();
+void run_once(long, long);
 void run();
-
-char *slist[SMALL_COUNT];
-char *list[LARGE_COUNT];
-
-
-int interactive=0;
 
 int
 main(int argc, char *argv[])
 {
+    int interactive = 0;
+    int large = 0;
+    int small = 0;
     int c;
-    while ((c = getopt(argc, argv, "i")) != EOF) {        
+    
+    while ((c = getopt(argc, argv, "isl")) != EOF) {        
         switch (c) {
             case 'i':
                 interactive = 1;
+                break;            
+            case 's':
+                small = 1;
                 break;
+            case 'l':
+                large = 1;
+                break;                
             default:
                 break;
         }
     }
-
+    
     if (interactive) {
         run();
-    } else {
-        run_once();
+    }
+    else if (small)
+    {
+        run_once(SMALL_CHUNK_SIZE, SMALL_COUNT);
+    }
+    else if (large)
+    {
+        run_once(LARGE_CHUNK_SIZE, LARGE_COUNT);            
     }
     exit(0);
 }
-
 
 void
 run ()
@@ -57,11 +60,11 @@ run ()
         printf("Input size to be allocated and number(e.g. 1024 2): ");
         scanf("%d %d", &size, &number);
 
-        char *ilist[number];
+        char *list[number];
 
         for (i = 0 ; i < number ; i++) {
-            ilist[i] = (char *)malloc(size);
-            memset(ilist[i], 0xff, size);
+            list[i] = (char *)malloc(size);
+            memset(list[i], 0xff, size);
         }
         
         printf("Enter to free: ");        
@@ -69,74 +72,25 @@ run ()
         getchar();        
 
         for (i = 0 ; i < number ;  i++) {
-            free(ilist[i]);
+            free(list[i]);
         }
     }
 }
 
 void
-run_once()
+run_once(long chunk_size, long count)
 {
-	int  i;
+    char *list[count];    
+    int i;
+    
+    for(i = 0 ; i < count ; i++){
+        list[i] = (char *)malloc(chunk_size);        
+    }
+    //printf("Allocated %ld bytes.\n", chunk_size * count);
 
-	for( i = 0 ; i < SMALL_COUNT ; i++){
-		salloc(i);
-	}
-	printf("Allocate %d bytes of small chunk.\n", SMALL_CHUNK_SIZE * SMALL_COUNT);
-
-	for( i = 0 ; i < LARGE_COUNT ; i++){
-		alloc(i);
-	}
-	printf("Allocate %d bytes of large chunk.\n", LARGE_CHUNK_SIZE * LARGE_COUNT);
-        
-	free_all();
-	sfree_all();
-
-        printf("Enter to continue: ");
-        getchar();
-
+    for(i = 0 ; i < count ; i++){
+        free(list[i]);
+    }    
+    getchar();
 }
 
-void
-salloc(int i)
-{
-	slist[i] = (char *)malloc(SMALL_CHUNK_SIZE);
-}
-
-void
-alloc(int i)
-{
-	list[i] = (char *)malloc(LARGE_CHUNK_SIZE);
-}
-
-
-void
-free_one(int i)
-{
-	free(list[i]);
-}
-
-void
-free_all()
-{
-	int i;
-	for(i=0 ; i < LARGE_COUNT ; i++){
-		free(list[i]);
-	}
-}
-
-void
-sfree_one(int i)
-{
-	printf("%p\n", slist[i]);
-	free(slist[i]);
-}
-
-void
-sfree_all()
-{
-	int i;
-	for(i=0 ; i < SMALL_COUNT ; i++){
-		free(slist[i]);
-	}
-}

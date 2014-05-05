@@ -349,6 +349,7 @@ HeapStat::get_bottom_size()
         printf("==============================\n");
     }
     bottom_addr = get_pointer_value_by_symbol("Bottom");
+
     if(debug){
         printf("get_bottom_size: Bottom address = 0x%" PRIxPTR "\n", bottom_addr);
     }

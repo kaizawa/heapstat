@@ -12,6 +12,9 @@
 
 static	struct ps_prochandle *Pr;
 
+/**
+ * This is a test program to examine how libproc works.
+ */
 int
 main(int argc, char *argv[])
 {
@@ -30,7 +33,7 @@ main(int argc, char *argv[])
         exit(1);
     }
 
-    /* Read data via ps_prochandle */
+    // Read data via ps_prochandle 
     path = argv[1];
     offset = strtol(argv[2], NULL, 0);
 
@@ -45,8 +48,8 @@ main(int argc, char *argv[])
     printf("ofset: 0x%lx(%ld), size: %ld, data: %s\n",
            offset, offset, size, (char *)buffer);    
 
-    /* Read data via /proc/pid/as file */
-    /// open as file 
+    // Read data via /proc/pid/as file 
+    // open as file 
     sprintf(path_to_as, "/proc/%s/as", path);        
     if((fd = open(path_to_as, O_CREAT | O_RDONLY)) < 0 ){
         printf("%s is not valid core or pid \n", path_to_as);

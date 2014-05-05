@@ -2,13 +2,14 @@ CONFIGURE_FILES = Makefile config.status config.cache config.h config.log autom4
 CC = gcc
 CXX = g++
 DEFS = -DPACKAGE_NAME=\"heapstat\" -DPACKAGE_TARNAME=\"heapstat\" -DPACKAGE_VERSION=\"0.1.0\" -DPACKAGE_STRING=\"heapstat\ 0.1.0\" -DPACKAGE_BUGREPORT=\"admin2@whiteboard.ne.jp\" -DPACKAGE_URL=\"\"
-CFLAGS = -g -I. -I../inc $(DEFS) -W -Wall -Wno-unknown-pragmas -Iinc 
+CFLAGS = -g -I. $(DEFS) -W -Wall -Wno-unknown-pragmas 
 LD_FLAGS = 
 LN = /usr/bin/ln
-PRODUCTS = leak32 leak64 plibtest astest small gtest-all
+PRODUCTS = leak32 leak64 plibtest astest small gtest-all heapstat_unittest
 INSTALL = /usr/bin/ginstall -c
 TEMPFILES = *~ .*~ .\#* \#*\# *.o
 GTEST_DIR = ./gtest
+HEAPSTAT_FLAGS = -lproc -I. -I.. -I../include -I$(GTEST_DIR)/include -isystem $(GTEST_DIR)/include -pthread 
 
 all: unittest
 
@@ -38,9 +39,10 @@ distclean:
 gtest-all: 
 	cd gtest ; make
 
-heapstat_unittest: heapstat_unittest.cpp
-	$(CXX) -isystem $(GTEST_DIR)/include;../inc -pthread heapstat_unittest.cpp \
-	$(GTEST_DIR)/src/gtest_main.cc $(GTEST_DIR)/libgtest.a  -o heapstat_unittest
+heapstat_unittest: heapstat_unittest.cpp ../HeapStat.cpp ../ProcService.cpp
+	$(CXX) $(HEAPSTAT_FLAGS) heapstat_unittest.cpp $(GTEST_DIR)/src/gtest_main.cc \
+	../HeapStat.cpp ../ProcService.cpp $(GTEST_DIR)/libgtest.a  \
+	-o heapstat_unittest 
 
-unittest: gtest-all heapstat_unittest
+unittest: gtest-all heapstat_unittest leak32 leak64
 	heapstat_unittest

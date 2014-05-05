@@ -2,7 +2,6 @@ CONFIGURE_FILES = Makefile config.status config.cache config.h config.log autom4
 CC = @CC@
 CXX = @CXX@
 DEFS = @DEFS@
-CFLAGS = -g -I. -I../inc $(DEFS) @CFLAGS@ 
 LD_FLAGS = @LD_OPT@
 LN = /usr/bin/ln
 PRODUCTS = libgtest.a

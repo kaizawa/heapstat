@@ -8,6 +8,10 @@
 
 #define MAX_FILE_PATH 256
 
+/**
+ * This is a test program to evaluate how
+ * /proc/<PID>/as works.
+ */
 int
 main(int argc, char *argv[])
 {
