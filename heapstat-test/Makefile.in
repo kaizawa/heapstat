@@ -10,7 +10,7 @@ INSTALL = @INSTALL@
 TEMPFILES = *~ .*~ .\#* \#*\# *.o
 GTEST_DIR = ./gtest
 
-all: $(PRODUCTS)
+all: test
 
 leak32: leak.c
 	${CC} $(CFLAGS) -m32 -g -o $@ leak.c
@@ -35,9 +35,8 @@ distclean:
 	-rm -fr $(CONFIGURE_FILES) $(TEMPFILES) 
 	-cd gtest ; make distclean
 
-gtest-all: all
+gtest-all: 
 	cd gtest ; make
 
-test:
+test: gtest-all
 	echo "not implemented"
-

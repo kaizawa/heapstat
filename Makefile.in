@@ -44,11 +44,11 @@ reinstall: uninstall install
 
 clean:
 	-rm -f $(PRODUCTS) $(TEMPFILES) 
-	cd heapstat-test ; make clean
+	-cd heapstat-test ; make clean
 
 distclean: 
 	-rm -fr $(CONFIGURE_FILES) $(TEMPFILES)
-	cd heapstat-test ; make distclean
+	-cd heapstat-test ; make distclean
 
-test:
+test: all
 	cd heapstat-test ; make
