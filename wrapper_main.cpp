@@ -48,9 +48,11 @@
 #include <malloc.h>
 #include <sys/mman.h>
 #include <stdlib.h>
+#include <iostream>
 #include "mallint.h"
 #include "Pcontrol.h"
 #include "heapstat.h"
+#include "MemorySpace.h"
 
 char **get_argv(struct ps_prochandle *, int, char **);
 
@@ -78,7 +80,6 @@ main (int argc, char *argv[], char * envp[])
         print_usage(argv[0]);
     }
     path = argv[optind++];
-
         
     if ((pr = proc_arg_grab(path, PR_ARG_ANY,
                             prg_gflags, &gcode)) == NULL) {
@@ -139,7 +140,7 @@ get_argv(struct ps_prochandle *pr, int argc, char **argv)
 void
 print_usage(char *argv)
 {
-    fprintf(stderr,"Usage: %s [-v] { pid | core } [interval]\n", argv);
-    fprintf(stderr,"       -v: verbose output\n");    
-    exit(0);    
+    std::cerr << "Usage: " << argv << " [-v] { pid | core } [interval]" << std::endl;
+    std::cerr << "       -v: verbose output" << std::endl;
+    exit(0);
 }

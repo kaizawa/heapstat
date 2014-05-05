@@ -1,22 +1,32 @@
 CONFIGURE_FILES = Makefile config.status config.cache config.h config.log autom4te.cache
 CC = @CC@
+CXX = @CXX@
 DEFS = @DEFS@
 CFLAGS = -g -I. -lproc $(DEFS) @CFLAGS@ # -Wall
 LD_FLAGS = @LD_OPT@
 LN = /usr/bin/ln
-PRODUCTS = heapstat heapstat32 heapstat64
+PRODUCTS = heapstat heapstat64 heapstat32
 INSTALL = @INSTALL@
 TEMPFILES = *~ .*~ .\#* \#*\#
 
 all: $(PRODUCTS)
 
-heapstat: heapstat_main.c heapstat.h
+heapstat: wrapper_main.cpp heapstat.h
+	${CXX} $(CFLAGS) -m64 -o $@ wrapper_main.cpp
+
+heapstat32: main.cpp heapstat.h MemorySpace.cpp MemorySpace.h ProcService.cpp ProcService.h HeapStat.h HeapStat.cpp
+	${CXX} $(CFLAGS) -m32 -o $@ main.cpp MemorySpace.cpp ProcService.cpp HeapStat.cpp
+
+heapstat64: main.cpp heapstat.h MemorySpace.cpp MemorySpace.h ProcService.cpp ProcService.h HeapStat.h HeapStat.cpp
+	${CXX} $(CFLAGS) -m64 -o $@ main.cpp MemorySpace.cpp ProcService.cpp HeapStat.cpp
+
+xheapstat: heapstat_main.c heapstat.h
 	${CC} $(CFLAGS) -m64 -o $@ heapstat_main.c
 
-heapstat32: heapstat.c heapstat.h
+xheapstat32: heapstat.c heapstat.h
 	${CC} $(CFLAGS) -m32 -o $@ heapstat.c
 
-heapstat64: heapstat.c heapstat.h
+xheapstat64: heapstat.c heapstat.h
 	${CC} $(CFLAGS) -m64 -o $@ heapstat.c
 
 leak: 

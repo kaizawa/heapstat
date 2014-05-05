@@ -1,3 +1,4 @@
+#pragma once
 /*
  * CDDL HEADER START
  *
