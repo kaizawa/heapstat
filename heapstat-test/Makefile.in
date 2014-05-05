@@ -1,16 +1,16 @@
 CONFIGURE_FILES = Makefile config.status config.cache config.h config.log autom4te.cache
-CC = @CC@
-CXX = @CXX@
-DEFS = @DEFS@
-CFLAGS = -g -I. -I../inc $(DEFS) @CFLAGS@ 
-LD_FLAGS = @LD_OPT@
+CC = gcc
+CXX = g++
+DEFS = -DPACKAGE_NAME=\"heapstat\" -DPACKAGE_TARNAME=\"heapstat\" -DPACKAGE_VERSION=\"0.1.0\" -DPACKAGE_STRING=\"heapstat\ 0.1.0\" -DPACKAGE_BUGREPORT=\"admin2@whiteboard.ne.jp\" -DPACKAGE_URL=\"\"
+CFLAGS = -g -I. -I../inc $(DEFS) -W -Wall -Wno-unknown-pragmas -Iinc 
+LD_FLAGS = 
 LN = /usr/bin/ln
 PRODUCTS = leak32 leak64 plibtest astest small gtest-all
-INSTALL = @INSTALL@
+INSTALL = /usr/bin/ginstall -c
 TEMPFILES = *~ .*~ .\#* \#*\# *.o
 GTEST_DIR = ./gtest
 
-all: test
+all: unittest
 
 leak32: leak.c
 	${CC} $(CFLAGS) -m32 -g -o $@ leak.c
@@ -38,5 +38,9 @@ distclean:
 gtest-all: 
 	cd gtest ; make
 
-test: gtest-all
-	echo "not implemented"
+heapstat_unittest: heapstat_unittest.cpp
+	$(CXX) -isystem $(GTEST_DIR)/include -pthread heapstat_unittest.cpp \
+	$(GTEST_DIR)/src/gtest_main.cc $(GTEST_DIR)/libgtest.a  -o heapstat_unittest
+
+unittest: gtest-all heapstat_unittest
+	heapstat_unittest

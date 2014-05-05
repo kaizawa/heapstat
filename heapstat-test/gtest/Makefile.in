@@ -5,9 +5,9 @@ DEFS = @DEFS@
 CFLAGS = -g -I. -I../inc $(DEFS) @CFLAGS@ 
 LD_FLAGS = @LD_OPT@
 LN = /usr/bin/ln
-PRODUCTS = gtest-all.o
+PRODUCTS = libgtest.a
 INSTALL = @INSTALL@
-TEMPFILES = *~ .*~ .\#* \#*\# 
+TEMPFILES = *~ .*~ .\#* \#*\# *.o
 GTEST_DIR = ./
 
 all: $(PRODUCTS)
@@ -18,9 +18,10 @@ clean:
 distclean: 
 	-rm -fr $(CONFIGURE_FILES) $(TEMPFILES) 
 
-gtest-all.o: $(GTEST_DIR)/src/gtest.cc $(GTEST_DIR)/src/gtest-death-test.cc \
+libgtest.a: $(GTEST_DIR)/src/gtest.cc $(GTEST_DIR)/src/gtest-death-test.cc \
 		$(GTEST_DIR)/src/gtest-filepath.cc $(GTEST_DIR)/src/gtest-port.cc \
 		$(GTEST_DIR)/src/gtest-printers.cc $(GTEST_DIR)/src/gtest-test-part.cc \
-		$(GTEST_DIR)/src/gtest-typed-test.cc $(GTEST_DIR)/src/gtest_main.cc
+		$(GTEST_DIR)/src/gtest-typed-test.cc 
 	${CXX} -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) \
-		-pthread -c $(GTEST_DIR)/src/gtest-all.cc                                        
+		-pthread -c $(GTEST_DIR)/src/gtest-all.cc  
+	ar -rv libgtest.a gtest-all.o
